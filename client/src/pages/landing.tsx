@@ -167,9 +167,7 @@ export default function LandingPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <div className="mb-2 flex justify-center lg:justify-start items-center gap-6">
-              <img src={logoHumani} alt="Humani" className="h-10 md:h-12 object-contain opacity-80" />
-              <div className="h-8 w-px bg-white/20 hidden lg:block" />
+            <div className="mb-2 flex justify-center lg:justify-start">
               <img src={logoHappyRun} alt="Happy Run" className="h-64 md:h-[450px] lg:h-[550px] w-auto object-contain -ml-8 lg:-ml-12" />
             </div>
             <p className="text-lg lg:text-xl text-muted-foreground font-light max-w-2xl mx-auto lg:mx-0">
@@ -216,23 +214,27 @@ export default function LandingPage() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.3 }}
-                className="w-full glass-panel p-8 md:p-10 rounded-3xl relative overflow-hidden"
+                className="w-full flex flex-col items-center"
               >
-                <div className="mb-8 text-center">
-                  <div className="flex justify-center mb-4">
-                    <div className="flex items-center gap-2">
-                       <span className="w-8 h-8 rounded-full bg-primary text-background font-bold flex items-center justify-center">1</span>
-                       <div className="w-12 h-1 bg-muted rounded-full overflow-hidden">
-                         <div className="w-1/2 h-full bg-primary/50" />
-                       </div>
-                       <span className="w-8 h-8 rounded-full bg-muted text-muted-foreground font-bold flex items-center justify-center">2</span>
-                    </div>
-                  </div>
-                  <h3 className="text-3xl font-display text-white mb-2">Dados Pessoais</h3>
-                  <p className="text-sm text-muted-foreground">Vamos começar sua inscrição</p>
+                <div className="mb-6">
+                  <img src={logoHumani} alt="Humani" className="h-12 md:h-14 object-contain" />
                 </div>
+                <div className="w-full glass-panel p-8 md:p-10 rounded-3xl relative overflow-hidden">
+                  <div className="mb-8 text-center">
+                    <div className="flex justify-center mb-4">
+                      <div className="flex items-center gap-2">
+                         <span className="w-8 h-8 rounded-full bg-primary text-background font-bold flex items-center justify-center">1</span>
+                         <div className="w-12 h-1 bg-muted rounded-full overflow-hidden">
+                           <div className="w-1/2 h-full bg-primary/50" />
+                         </div>
+                         <span className="w-8 h-8 rounded-full bg-muted text-muted-foreground font-bold flex items-center justify-center">2</span>
+                      </div>
+                    </div>
+                    <h3 className="text-3xl font-display text-white mb-2">Dados Pessoais</h3>
+                    <p className="text-sm text-muted-foreground">Vamos começar sua inscrição</p>
+                  </div>
 
-                <Form {...formPersonal}>
+                  <Form {...formPersonal}>
                   <form onSubmit={formPersonal.handleSubmit(onPersonalSubmit)} className="space-y-6">
                     <FormField
                       control={formPersonal.control}
@@ -319,23 +321,27 @@ export default function LandingPage() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.3 }}
-                className="w-full glass-panel p-8 md:p-10 rounded-3xl relative overflow-hidden"
+                className="w-full flex flex-col items-center"
               >
-                <div className="mb-6 text-center">
-                  <div className="flex justify-center mb-4">
-                    <div className="flex items-center gap-2">
-                       <span className="w-8 h-8 rounded-full bg-primary/20 text-primary font-bold flex items-center justify-center cursor-pointer" onClick={() => setStep(1)}><Check className="w-4 h-4"/></span>
-                       <div className="w-12 h-1 bg-muted rounded-full overflow-hidden">
-                         <div className="w-full h-full bg-primary" />
-                       </div>
-                       <span className="w-8 h-8 rounded-full bg-primary text-background font-bold flex items-center justify-center">2</span>
-                    </div>
-                  </div>
-                  <h3 className="text-3xl font-display text-white mb-2">Pagamento</h3>
-                  <p className="text-sm text-muted-foreground">Escolha a forma de pagamento</p>
+                <div className="mb-6">
+                  <img src={logoHumani} alt="Humani" className="h-12 md:h-14 object-contain" />
                 </div>
+                <div className="w-full glass-panel p-8 md:p-10 rounded-3xl relative overflow-hidden">
+                  <div className="mb-6 text-center">
+                    <div className="flex justify-center mb-4">
+                      <div className="flex items-center gap-2">
+                         <span className="w-8 h-8 rounded-full bg-primary/20 text-primary font-bold flex items-center justify-center cursor-pointer" onClick={() => setStep(1)}><Check className="w-4 h-4"/></span>
+                         <div className="w-12 h-1 bg-muted rounded-full overflow-hidden">
+                           <div className="w-full h-full bg-primary" />
+                         </div>
+                         <span className="w-8 h-8 rounded-full bg-primary text-background font-bold flex items-center justify-center">2</span>
+                      </div>
+                    </div>
+                    <h3 className="text-3xl font-display text-white mb-2">Pagamento</h3>
+                    <p className="text-sm text-muted-foreground">Escolha a forma de pagamento</p>
+                  </div>
 
-                <Form {...formPayment}>
+                  <Form {...formPayment}>
                   <form onSubmit={formPayment.handleSubmit(onPaymentSubmit)} className="space-y-6">
                     <FormField
                       control={formPayment.control}
