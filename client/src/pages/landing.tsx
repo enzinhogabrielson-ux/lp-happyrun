@@ -46,6 +46,8 @@ const paymentSchema = z.object({
 type PersonalData = z.infer<typeof personalDataSchema>;
 type PaymentData = z.infer<typeof paymentSchema>;
 
+import logoHumani from '@assets/Logo_Humani_Branco_1770990681867.png';
+
 export default function LandingPage() {
   const { addInscription, config } = useInscriptionStore();
   const { toast } = useToast();
@@ -152,15 +154,19 @@ export default function LandingPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <h2 className="text-primary font-bold tracking-widest uppercase mb-4 text-xl">
-              Humani Treinamentos
+            <div className="mb-8 flex justify-center lg:justify-start">
+              <img src={logoHumani} alt="Humani Treinamentos" className="h-16 md:h-20 object-contain" />
+            </div>
+            <h2 className="text-primary font-bold tracking-widest uppercase mb-2 text-xl">
+              Happy Run
             </h2>
-            <h1 className="text-6xl lg:text-8xl font-display leading-[0.9] mb-6 text-white drop-shadow-2xl">
+            <h1 className="text-5xl lg:text-7xl font-display leading-[0.9] mb-6 text-white drop-shadow-2xl">
               Corrida <br />
-              <span className="text-primary glow-text">Bandeiras</span>
+              <span className="text-primary glow-text">Das Mulheres</span>
             </h1>
             <p className="text-lg lg:text-xl text-muted-foreground font-light max-w-md mx-auto lg:mx-0">
-              Vista sua camisa e participe do maior evento de corrida do Bandeiras Empresarial em Votorantim!
+              Corrida com Happy Hour em homenagem às mulheres. <br/>
+              Aberto ao público!
             </p>
           </motion.div>
 
@@ -176,7 +182,7 @@ export default function LandingPage() {
               </div>
               <div className="text-left">
                 <div className="text-xs text-primary font-bold uppercase tracking-wider">Local</div>
-                <div className="text-sm font-semibold">Bandeiras Empresarial<br/>Votorantim</div>
+                <div className="text-sm font-semibold">Bandeiras - Votorantim<br/>19 de Março - 19h30</div>
               </div>
             </div>
             
@@ -185,8 +191,8 @@ export default function LandingPage() {
                 <Shirt size={24} />
               </div>
               <div className="text-left">
-                <div className="text-xs text-primary font-bold uppercase tracking-wider">Inclui</div>
-                <div className="text-sm font-semibold">Camisa Oficial<br/>do Evento</div>
+                <div className="text-xs text-primary font-bold uppercase tracking-wider">Valor</div>
+                <div className="text-sm font-semibold">Inscrição R$ 60,00<br/>Happy Hour Incluso</div>
               </div>
             </div>
           </motion.div>
@@ -358,7 +364,7 @@ export default function LandingPage() {
                         <div className="text-center space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300 py-4">
                            <div className="space-y-2">
                              <p className="text-sm text-muted-foreground uppercase tracking-widest font-bold">Valor da Inscrição</p>
-                             <div className="text-5xl font-display text-white">R$ 5,00</div>
+                             <div className="text-5xl font-display text-white">R$ 60,00</div>
                            </div>
                            
                            <div className="bg-primary/5 p-6 rounded-2xl border border-primary/20 space-y-4">

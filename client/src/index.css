@@ -47,33 +47,33 @@
 
 :root {
   /* Dark Mode Default for this project based on briefing */
-  --background: 225 50% 8%; /* #0a0f1e */
+  --background: 75 6% 13%; /* #22231f - New Black/Dark Grey */
   --foreground: 0 0% 91%;   /* #e8e8e8 */
 
-  --card: 225 28% 14%;      /* #1a1f2e */
+  --card: 75 6% 18%;      /* Slightly lighter than background */
   --card-foreground: 0 0% 91%;
 
-  --popover: 225 28% 14%;
+  --popover: 75 6% 18%;
   --popover-foreground: 0 0% 91%;
 
-  --primary: 174 91% 45%;   /* #0ADDC8 */
-  --primary-foreground: 225 50% 8%;
+  --primary: 158 95% 50%;   /* #06f9a2 - New Green */
+  --primary-foreground: 75 6% 13%;
 
-  --secondary: 174 92% 38%; /* #08b9a7 */
-  --secondary-foreground: 225 50% 8%;
+  --secondary: 158 95% 40%; /* Darker Green */
+  --secondary-foreground: 75 6% 13%;
 
-  --muted: 225 20% 25%;
-  --muted-foreground: 225 10% 65%;
+  --muted: 75 6% 25%;
+  --muted-foreground: 75 5% 65%;
 
-  --accent: 174 91% 45%;
-  --accent-foreground: 225 50% 8%;
+  --accent: 158 95% 50%;
+  --accent-foreground: 75 6% 13%;
 
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
 
-  --border: 174 91% 45%; /* Using primary color for borders as per design style */
-  --input: 225 28% 20%;
-  --ring: 174 91% 45%;
+  --border: 158 95% 50%; /* Using primary color for borders as per design style */
+  --input: 75 6% 20%;
+  --ring: 158 95% 50%;
 
   --radius: 0.75rem;
 }
@@ -95,9 +95,9 @@
 }
 
 .glow-text {
-  text-shadow: 0 0 20px rgba(10, 221, 200, 0.5);
+  text-shadow: 0 0 20px rgba(6, 249, 162, 0.5);
 }
 
 .glow-box {
-  box-shadow: 0 0 20px rgba(10, 221, 200, 0.15);
+  box-shadow: 0 0 20px rgba(6, 249, 162, 0.15);
 }
