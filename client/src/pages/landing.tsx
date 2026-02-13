@@ -483,10 +483,6 @@ export default function LandingPage() {
                      <span className="text-muted-foreground">Camisa:</span>
                      <span className="font-bold text-white">{personalData?.tamanho}</span>
                    </div>
-                   <div className="flex justify-between text-sm">
-                     <span className="text-muted-foreground">Status:</span>
-                     <span className="font-bold text-green-400">PAGO</span>
-                   </div>
                 </div>
 
                 <Button 
