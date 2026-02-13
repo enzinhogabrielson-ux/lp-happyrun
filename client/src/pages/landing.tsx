@@ -394,6 +394,11 @@ export default function LandingPage() {
                                </div>
                              </div>
                              <p className="text-xs text-muted-foreground">Clique no código acima para copiar</p>
+                             <div className="mt-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+                               <p className="text-[10px] md:text-xs text-amber-500 font-bold uppercase tracking-wider leading-relaxed">
+                                 ⚠️ Atenção: Clique em "Pagar e Finalizar" apenas após concluir a transferência via PIX.
+                               </p>
+                             </div>
                            </div>
                         </div>
                       ) : (
