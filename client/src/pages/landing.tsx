@@ -106,7 +106,7 @@ export default function LandingPage() {
 
       if (paymentData.paymentMethod === "credit_card") {
         const message = encodeURIComponent(`Olá! Acabei de realizar minha inscrição para a Happy Run pelo cartão e gostaria de confirmar os próximos passos.`);
-        window.open(`https://wa.me/5515991232959?text=${message}`, '_blank');
+        window.open(`https://api.whatsapp.com/send?phone=5515991232959&text=${message}`, '_blank');
       }
     }, 2000);
   };
