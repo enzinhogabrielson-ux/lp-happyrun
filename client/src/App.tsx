@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Router, Switch, Route, useHashLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -7,13 +7,17 @@ import LandingPage from "@/pages/landing";
 import AdminPage from "@/pages/admin";
 import NotFound from "@/pages/not-found";
 
-function Router() {
+// Use hash location for routing to support static hosting
+// This ensures paths like /#/admin work without server-side configuration
+function HashRouter() {
   return (
-    <Switch>
-      <Route path="/" component={LandingPage} />
-      <Route path="/admin" component={AdminPage} />
-      <Route component={NotFound} />
-    </Switch>
+    <Router hook={useHashLocation}>
+      <Switch>
+        <Route path="/" component={LandingPage} />
+        <Route path="/admin" component={AdminPage} />
+        <Route component={NotFound} />
+      </Switch>
+    </Router>
   );
 }
 
@@ -22,7 +26,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
-        <Router />
+        <HashRouter />
       </TooltipProvider>
     </QueryClientProvider>
   );

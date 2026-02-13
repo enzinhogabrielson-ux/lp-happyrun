@@ -575,7 +575,7 @@ export default function LandingPage() {
       
       {/* Admin Link Footer */}
       <div className="relative z-10 w-full text-center py-4">
-        <a href="/admin" className="text-xs text-muted-foreground/30 hover:text-primary transition-colors uppercase tracking-widest">
+        <a href="#/admin" className="text-xs text-muted-foreground/30 hover:text-primary transition-colors uppercase tracking-widest">
           Acesso Administrativo
         </a>
       </div>
