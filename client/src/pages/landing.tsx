@@ -166,8 +166,8 @@ export default function LandingPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <div className="mb-4 flex justify-center lg:justify-start">
-              <img src={logoHappyRun} alt="Happy Run" className="h-48 md:h-64 object-contain -ml-4" />
+            <div className="mb-2 flex justify-center lg:justify-start">
+              <img src={logoHappyRun} alt="Happy Run" className="h-64 md:h-[450px] lg:h-[550px] w-auto object-contain -ml-8 lg:-ml-12" />
             </div>
             <p className="text-lg lg:text-xl text-muted-foreground font-light max-w-2xl mx-auto lg:mx-0">
               Corrida com Happy Hour, aberta ao público. <br/>
