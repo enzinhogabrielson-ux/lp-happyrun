@@ -100,7 +100,7 @@ export default function LandingPage() {
       setStep(3);
 
       if (paymentData.paymentMethod === "credit_card") {
-        const message = encodeURIComponent(`Olá! Acabei de realizar minha pré-inscrição para a Happy Run via Cartão e gostaria de confirmar o pagamento.`);
+        const message = encodeURIComponent(`Olá! Acabei de realizar minha pré-inscrição para a Happy Run e vim realizar o pagamento via cartão.`);
         const waUrl = `https://api.whatsapp.com/send?phone=5515991232959&text=${message}`;
         
         const link = document.createElement('a');
