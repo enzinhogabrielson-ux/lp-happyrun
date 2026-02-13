@@ -100,7 +100,7 @@ export default function LandingPage() {
       setStep(3);
 
       if (paymentData.paymentMethod === "credit_card") {
-        const message = encodeURIComponent(`Olá! Acabei de realizar minha pré-inscrição para a Happy Run pelo cartão e gostaria de confirmar o pagamento.`);
+        const message = encodeURIComponent(`Olá! Acabei de realizar minha pré-inscrição para a Happy Run via Cartão e gostaria de confirmar o pagamento.`);
         const waUrl = `https://api.whatsapp.com/send?phone=5515991232959&text=${message}`;
         
         const link = document.createElement('a');
@@ -492,7 +492,8 @@ export default function LandingPage() {
                   <Button 
                     className="w-full h-14 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl flex items-center justify-center gap-2"
                     onClick={() => {
-                      const message = encodeURIComponent(`Olá! Aqui está o meu comprovante de pagamento para a Happy Run.\n\nParticipante: ${personalData?.nome}\nCamisa: ${personalData?.tamanho}`);
+                      const method = formPayment.getValues("paymentMethod") === "pix" ? "Pix" : "Cartão";
+                      const message = encodeURIComponent(`Olá! Aqui está o meu comprovante de pagamento para a Happy Run via ${method}.\n\nParticipante: ${personalData?.nome}\nCamisa: ${personalData?.tamanho}`);
                       window.open(`https://api.whatsapp.com/send?phone=5515991232959&text=${message}`, '_blank');
                     }}
                   >
