@@ -38,7 +38,7 @@ const paymentSchema = z.object({
 type PersonalData = z.infer<typeof personalDataSchema>;
 type PaymentData = z.infer<typeof paymentSchema>;
 
-import logoHumani from '@assets/Logo_Humani_Branco_1770990681867.png';
+import logoHappyRun from '@assets/logo_happy_run_1771010367077.png';
 
 export default function LandingPage() {
   const { addInscription, config } = useInscriptionStore();
@@ -166,15 +166,9 @@ export default function LandingPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <div className="mb-8 flex justify-center lg:justify-start">
-              <img src={logoHumani} alt="Humani Treinamentos" className="h-16 md:h-20 object-contain" />
+            <div className="mb-4 flex justify-center lg:justify-start">
+              <img src={logoHappyRun} alt="Happy Run" className="h-48 md:h-64 object-contain -ml-4" />
             </div>
-            <h2 className="text-primary font-bold tracking-widest uppercase mb-2 text-xl">
-              Corrida no Bandeiras
-            </h2>
-            <h1 className="text-6xl lg:text-9xl font-display leading-[0.9] mb-6 text-white drop-shadow-2xl whitespace-nowrap">
-              Happy <span className="text-primary glow-text">Run</span>
-            </h1>
             <p className="text-lg lg:text-xl text-muted-foreground font-light max-w-2xl mx-auto lg:mx-0">
               Corrida com Happy Hour, aberta ao público. <br/>
               Homenagem ao dia internacional da mulher.
