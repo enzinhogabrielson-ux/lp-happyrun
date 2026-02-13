@@ -160,9 +160,8 @@ export default function LandingPage() {
             <h2 className="text-primary font-bold tracking-widest uppercase mb-2 text-xl">
               Corrida Das Mulheres
             </h2>
-            <h1 className="text-5xl lg:text-7xl font-display leading-[0.9] mb-6 text-white drop-shadow-2xl">
-              Happy <br />
-              <span className="text-primary glow-text">Run</span>
+            <h1 className="text-6xl lg:text-9xl font-display leading-[0.9] mb-6 text-white drop-shadow-2xl whitespace-nowrap">
+              Happy <span className="text-primary glow-text">Run</span>
             </h1>
             <p className="text-lg lg:text-xl text-muted-foreground font-light max-w-md mx-auto lg:mx-0">
               Corrida com Happy Hour em homenagem às mulheres. <br/>
