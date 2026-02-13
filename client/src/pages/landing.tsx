@@ -15,7 +15,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { MapPin, Shirt, CreditCard, QrCode, ArrowRight, ArrowLeft, Check, Copy, Loader2 } from "lucide-react";
+import { MapPin, Shirt, CreditCard, QrCode, ArrowRight, ArrowLeft, Check, Copy, Loader2, Lock, Users } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -128,7 +128,7 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-background text-foreground flex items-center justify-center p-4">
+    <div className="min-h-screen relative overflow-hidden bg-background text-foreground flex flex-col justify-between p-4">
       {/* Background Decor */}
       <div className="fixed inset-0 pointer-events-none">
         <motion.div 
@@ -144,7 +144,7 @@ export default function LandingPage() {
         <div className="absolute top-1/2 w-full h-[1px] bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
       </div>
 
-      <div className="container max-w-6xl relative z-10 grid lg:grid-cols-2 gap-12 lg:gap-24 items-center">
+      <div className="container max-w-6xl relative z-10 grid lg:grid-cols-2 gap-12 lg:gap-24 items-center flex-grow pt-8">
         {/* Left Column: Hero Text */}
         <div className="space-y-8 text-center lg:text-left">
           <motion.div
@@ -566,6 +566,13 @@ export default function LandingPage() {
             )}
           </AnimatePresence>
         </div>
+      </div>
+      
+      {/* Admin Link Footer */}
+      <div className="relative z-10 w-full text-center py-4">
+        <a href="/admin" className="text-xs text-muted-foreground/30 hover:text-primary transition-colors uppercase tracking-widest">
+          Acesso Administrativo
+        </a>
       </div>
     </div>
   );
