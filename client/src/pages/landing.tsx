@@ -485,8 +485,23 @@ export default function LandingPage() {
                    </div>
                 </div>
 
+                <div className="pt-4">
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Nos envie o comprovante clicando no link abaixo:
+                  </p>
+                  <Button 
+                    className="w-full h-14 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl flex items-center justify-center gap-2"
+                    onClick={() => {
+                      const message = encodeURIComponent(`Olá! Aqui está o meu comprovante de pagamento para a Happy Run.\n\nParticipante: ${personalData?.nome}\nCamisa: ${personalData?.tamanho}`);
+                      window.open(`https://api.whatsapp.com/send?phone=5515991232959&text=${message}`, '_blank');
+                    }}
+                  >
+                    <Copy className="w-5 h-5" /> ENVIAR COMPROVANTE
+                  </Button>
+                </div>
+
                 <Button 
-                  className="w-full mt-6 h-12 border border-primary/30 hover:bg-primary/10 text-primary bg-transparent"
+                  className="w-full mt-4 h-12 border border-primary/30 hover:bg-primary/10 text-primary bg-transparent text-xs uppercase tracking-widest"
                   onClick={() => {
                     formPersonal.reset();
                     formPayment.reset();
