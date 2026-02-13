@@ -103,6 +103,11 @@ export default function LandingPage() {
       
       setIsProcessing(false);
       setStep(3);
+
+      if (paymentData.paymentMethod === "credit_card") {
+        const message = encodeURIComponent(`Olá! Acabei de realizar minha inscrição para a Happy Run pelo cartão e gostaria de confirmar os próximos passos.`);
+        window.open(`https://wa.me/5515991232959?text=${message}`, '_blank');
+      }
     }, 2000);
   };
 
@@ -164,8 +169,8 @@ export default function LandingPage() {
               Happy <span className="text-primary glow-text">Run</span>
             </h1>
             <p className="text-lg lg:text-xl text-muted-foreground font-light max-w-2xl mx-auto lg:mx-0">
-              Corrida com Happy Hour em homenagem às mulheres. <br/>
-              Aberto ao público!
+              Corrida com Happy Hour, aberta ao público. <br/>
+              Homenagem ao dia internacional da mulher.
             </p>
           </motion.div>
 

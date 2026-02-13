@@ -26,7 +26,7 @@ export const useInscriptionStore = create<InscriptionStore>()(
     (set) => ({
       inscriptions: [],
       config: {
-        pixKey: "00020126580014BR.GOV.BCB.PIX0136123e4567-e89b-12d3-a456-426614174000520400005303986540510.005802BR5913Humani Eventos6009SAO PAULO62070503***6304E2CA", // Default Mock Key
+        pixKey: "00020101021126460014br.gov.bcb.pix0124rafaelamunhoz4@gmail.com5204000053039865802BR5921RAFAELA MUNHOZ FARIAS6008SOROCABA62070503***6304C9A3", // Default Mock Key
       },
       addInscription: (data) => set((state) => ({
         inscriptions: [
