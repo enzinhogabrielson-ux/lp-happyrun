@@ -39,6 +39,7 @@ type PersonalData = z.infer<typeof personalDataSchema>;
 type PaymentData = z.infer<typeof paymentSchema>;
 
 import logoHappyRun from '@assets/logo_happy_run_1771010367077.png';
+import logoHumani from '@assets/Logo_Humani_Branco_1770990681867.png';
 
 export default function LandingPage() {
   const { addInscription, config } = useInscriptionStore();
@@ -166,7 +167,9 @@ export default function LandingPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <div className="mb-2 flex justify-center lg:justify-start">
+            <div className="mb-2 flex justify-center lg:justify-start items-center gap-6">
+              <img src={logoHumani} alt="Humani" className="h-10 md:h-12 object-contain opacity-80" />
+              <div className="h-8 w-px bg-white/20 hidden lg:block" />
               <img src={logoHappyRun} alt="Happy Run" className="h-64 md:h-[450px] lg:h-[550px] w-auto object-contain -ml-8 lg:-ml-12" />
             </div>
             <p className="text-lg lg:text-xl text-muted-foreground font-light max-w-2xl mx-auto lg:mx-0">
