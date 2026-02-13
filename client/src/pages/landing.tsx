@@ -87,14 +87,11 @@ export default function LandingPage() {
 
     // Simulate Payment Processing
     setTimeout(() => {
-      // In mockup mode, we'll still record the inscription but mark payment as false
-      // unless it's a real backend where we could verify.
-      // For now, let's keep the flow but adjust the success message context.
       addInscription({
         nome: personalData.nome,
         telefone: personalData.telefone,
         tamanho: personalData.tamanho,
-        pagamentoConfirmado: false // Mark as pending initially
+        pagamentoConfirmado: false 
       });
       
       setIsProcessing(false);
@@ -235,40 +232,17 @@ export default function LandingPage() {
                   </div>
 
                   <Form {...formPersonal}>
-                  <form onSubmit={formPersonal.handleSubmit(onPersonalSubmit)} className="space-y-6">
-                    <FormField
-                      control={formPersonal.control}
-                      name="nome"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-primary font-bold uppercase text-xs tracking-wider">Nome Completo</FormLabel>
-                          <FormControl>
-                            <Input 
-                              placeholder="Digite seu nome completo" 
-                              {...field} 
-                              className="bg-background/50 border-primary/20 focus-visible:ring-primary/50 h-12 rounded-xl"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <div className="grid grid-cols-2 gap-4">
+                    <form onSubmit={formPersonal.handleSubmit(onPersonalSubmit)} className="space-y-6">
                       <FormField
                         control={formPersonal.control}
-                        name="telefone"
+                        name="nome"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-primary font-bold uppercase text-xs tracking-wider">Telefone</FormLabel>
+                            <FormLabel className="text-primary font-bold uppercase text-xs tracking-wider">Nome Completo</FormLabel>
                             <FormControl>
                               <Input 
-                                placeholder="(00) 00000-0000" 
+                                placeholder="Digite seu nome completo" 
                                 {...field} 
-                                onChange={(e) => {
-                                  handlePhoneChange(e);
-                                  field.onChange(e);
-                                }}
                                 className="bg-background/50 border-primary/20 focus-visible:ring-primary/50 h-12 rounded-xl"
                               />
                             </FormControl>
@@ -277,40 +251,64 @@ export default function LandingPage() {
                         )}
                       />
 
-                      <FormField
-                        control={formPersonal.control}
-                        name="tamanho"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-primary font-bold uppercase text-xs tracking-wider">Camisa</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          control={formPersonal.control}
+                          name="telefone"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-primary font-bold uppercase text-xs tracking-wider">Telefone</FormLabel>
                               <FormControl>
-                                <SelectTrigger className="bg-background/50 border-primary/20 focus:ring-primary/50 h-12 rounded-xl">
-                                  <SelectValue placeholder="Tamanho" />
-                                </SelectTrigger>
+                                <Input 
+                                  placeholder="(00) 00000-0000" 
+                                  {...field} 
+                                  onChange={(e) => {
+                                    handlePhoneChange(e);
+                                    field.onChange(e);
+                                  }}
+                                  className="bg-background/50 border-primary/20 focus-visible:ring-primary/50 h-12 rounded-xl"
+                                />
                               </FormControl>
-                              <SelectContent className="bg-card border-primary/20">
-                                {["PP", "P", "M", "G", "GG", "XG"].map((size) => (
-                                  <SelectItem key={size} value={size} className="focus:bg-primary/20 focus:text-primary cursor-pointer">
-                                    {size}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
 
-                    <Button 
-                      type="submit" 
-                      className="w-full h-14 text-lg font-display tracking-widest bg-primary hover:bg-primary-dark transition-all shadow-lg shadow-primary/20 text-background rounded-xl mt-4"
-                    >
-                      CONTINUAR <ArrowRight className="ml-2 w-5 h-5" />
-                    </Button>
-                  </form>
-                </Form>
+                        <FormField
+                          control={formPersonal.control}
+                          name="tamanho"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-primary font-bold uppercase text-xs tracking-wider">Camisa</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger className="bg-background/50 border-primary/20 focus:ring-primary/50 h-12 rounded-xl">
+                                    <SelectValue placeholder="Tamanho" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent className="bg-card border-primary/20">
+                                  {["PP", "P", "M", "G", "GG", "XG"].map((size) => (
+                                    <SelectItem key={size} value={size} className="focus:bg-primary/20 focus:text-primary cursor-pointer">
+                                      {size}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <Button 
+                        type="submit" 
+                        className="w-full h-14 text-lg font-display tracking-widest bg-primary hover:bg-primary-dark transition-all shadow-lg shadow-primary/20 text-background rounded-xl mt-4"
+                      >
+                        CONTINUAR <ArrowRight className="ml-2 w-5 h-5" />
+                      </Button>
+                    </form>
+                  </Form>
+                </div>
               </motion.div>
             )}
 
@@ -342,114 +340,111 @@ export default function LandingPage() {
                   </div>
 
                   <Form {...formPayment}>
-                  <form onSubmit={formPayment.handleSubmit(onPaymentSubmit)} className="space-y-6">
-                    <FormField
-                      control={formPayment.control}
-                      name="paymentMethod"
-                      render={({ field }) => (
-                        <FormItem className="grid grid-cols-2 gap-4 space-y-0">
-                          <div 
-                            className={`
-                              flex flex-col items-center justify-center p-4 rounded-xl border-2 cursor-pointer transition-all h-24
-                              ${paymentMethod === 'pix' ? 'border-primary bg-primary/10 text-primary' : 'border-muted bg-background/50 text-muted-foreground hover:border-primary/50'}
-                            `}
-                            onClick={() => formPayment.setValue("paymentMethod", "pix")}
-                          >
-                             <QrCode className="w-8 h-8 mb-2" />
-                             <span className="text-xs font-bold uppercase">Pix</span>
-                          </div>
-                          
-                          <div 
-                            className={`
-                              flex flex-col items-center justify-center p-4 rounded-xl border-2 cursor-pointer transition-all h-24
-                              ${paymentMethod === 'credit_card' ? 'border-primary bg-primary/10 text-primary' : 'border-muted bg-background/50 text-muted-foreground hover:border-primary/50'}
-                            `}
-                            onClick={() => formPayment.setValue("paymentMethod", "credit_card")}
-                          >
-                             <CreditCard className="w-8 h-8 mb-2" />
-                             <span className="text-xs font-bold uppercase">Cartão</span>
-                          </div>
-                        </FormItem>
-                      )}
-                    />
+                    <form onSubmit={formPayment.handleSubmit(onPaymentSubmit)} className="space-y-6">
+                      <FormField
+                        control={formPayment.control}
+                        name="paymentMethod"
+                        render={({ field }) => (
+                          <FormItem className="grid grid-cols-2 gap-4 space-y-0">
+                            <div 
+                              className={`
+                                flex flex-col items-center justify-center p-4 rounded-xl border-2 cursor-pointer transition-all h-24
+                                ${paymentMethod === 'pix' ? 'border-primary bg-primary/10 text-primary' : 'border-muted bg-background/50 text-muted-foreground hover:border-primary/50'}
+                              `}
+                              onClick={() => formPayment.setValue("paymentMethod", "pix")}
+                            >
+                               <QrCode className="w-8 h-8 mb-2" />
+                               <span className="text-xs font-bold uppercase">Pix</span>
+                            </div>
+                            
+                            <div 
+                              className={`
+                                flex flex-col items-center justify-center p-4 rounded-xl border-2 cursor-pointer transition-all h-24
+                                ${paymentMethod === 'credit_card' ? 'border-primary bg-primary/10 text-primary' : 'border-muted bg-background/50 text-muted-foreground hover:border-primary/50'}
+                              `}
+                              onClick={() => formPayment.setValue("paymentMethod", "credit_card")}
+                            >
+                               <CreditCard className="w-8 h-8 mb-2" />
+                               <span className="text-xs font-bold uppercase">Cartão</span>
+                            </div>
+                          </FormItem>
+                        )}
+                      />
 
-                    <div className="mt-6 p-4 bg-background/30 rounded-xl border border-primary/10 min-h-[220px]">
-                      {paymentMethod === 'pix' ? (
-                        <div className="text-center space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300 py-4">
-                           <div className="space-y-2">
-                             <p className="text-sm text-muted-foreground uppercase tracking-widest font-bold">Valor da Inscrição</p>
-                             <div className="text-5xl font-display text-white">R$ 60,00</div>
-                           </div>
-                           
-                           <div className="bg-primary/5 p-6 rounded-2xl border border-primary/20 space-y-4">
-                             <p className="text-xs text-primary font-bold uppercase tracking-wider mb-2">Chave PIX (Copia e Cola)</p>
-                             <div 
-                               onClick={copyPixCode}
-                               className="relative group cursor-pointer bg-background/50 border border-primary/30 rounded-xl p-4 transition-all hover:bg-primary/10 hover:border-primary/50"
-                             >
-                               <p className="font-mono text-sm break-all text-white/90 uppercase leading-relaxed select-all">
-                                 {config.pixKey}
-                               </p>
-                               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-background/80 backdrop-blur-sm rounded-xl">
-                                 <span className="flex items-center gap-2 text-primary font-bold uppercase tracking-widest text-sm">
-                                   <Copy className="w-4 h-4" /> Copiar Código
-                                 </span>
+                      <div className="mt-6 p-4 bg-background/30 rounded-xl border border-primary/10 min-h-[220px]">
+                        {paymentMethod === 'pix' ? (
+                          <div className="text-center space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300 py-4">
+                             <div className="space-y-2">
+                               <p className="text-sm text-muted-foreground uppercase tracking-widest font-bold">Valor da Inscrição</p>
+                               <div className="text-5xl font-display text-white">R$ 60,00</div>
+                             </div>
+                             
+                             <div className="bg-primary/5 p-6 rounded-2xl border border-primary/20 space-y-4">
+                               <p className="text-xs text-primary font-bold uppercase tracking-wider mb-2">Chave PIX (Copia e Cola)</p>
+                               <div 
+                                 onClick={copyPixCode}
+                                 className="relative group cursor-pointer bg-background/50 border border-primary/30 rounded-xl p-4 transition-all hover:bg-primary/10 hover:border-primary/50"
+                               >
+                                 <p className="font-mono text-sm break-all text-white/90 uppercase leading-relaxed select-all">
+                                   {config.pixKey}
+                                 </p>
+                                 <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-background/80 backdrop-blur-sm rounded-xl">
+                                   <span className="flex items-center gap-2 text-primary font-bold uppercase tracking-widest text-sm">
+                                     <Copy className="w-4 h-4" /> Copiar Código
+                                   </span>
+                                 </div>
+                               </div>
+                               <p className="text-xs text-muted-foreground">Clique no código acima para copiar</p>
+                               <div className="mt-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+                                 <p className="text-[10px] md:text-xs text-amber-500 font-bold uppercase tracking-wider leading-relaxed">
+                                   ⚠️ Atenção: Clique em "Pagar e Finalizar" apenas após concluir a transferência via PIX.
+                                 </p>
                                </div>
                              </div>
-                             <p className="text-xs text-muted-foreground">Clique no código acima para copiar</p>
-                             <div className="mt-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
-                               <p className="text-[10px] md:text-xs text-amber-500 font-bold uppercase tracking-wider leading-relaxed">
-                                 ⚠️ Atenção: Clique em "Pagar e Finalizar" apenas após concluir a transferência via PIX.
-                               </p>
-                             </div>
-                           </div>
-                        </div>
-                      ) : (
-                        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300 py-4 text-center">
-                           <div className="space-y-2">
-                             <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Pagamento via Cartão</p>
-                             <div className="bg-primary/5 p-8 rounded-2xl border border-primary/20 space-y-4">
-                               <CreditCard className="w-12 h-12 mx-auto text-primary mb-4" />
-                               <p className="text-lg text-white font-medium">
-                                 O pagamento via cartão de crédito é realizado diretamente pelo WhatsApp.
-                               </p>
-                               <p className="text-sm text-muted-foreground">
-                                 Clique em "Pagar e Finalizar" para ser redirecionado e concluir sua inscrição com nossa equipe.
-                               </p>
-                             </div>
-                           </div>
-                           
-                          
-
-
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex gap-3">
-                      <Button 
-                        type="button" 
-                        variant="outline" 
-                        onClick={() => setStep(1)}
-                        className="flex-1 h-14 border-primary/20 hover:bg-primary/10 text-primary"
-                        disabled={isProcessing}
-                      >
-                        <ArrowLeft className="mr-2 w-5 h-5" /> VOLTAR
-                      </Button>
-                      <Button 
-                        type="submit" 
-                        className="flex-[2] h-14 text-lg font-display tracking-widest bg-gradient-to-r from-primary to-secondary hover:brightness-110 transition-all shadow-lg shadow-primary/20 text-background rounded-xl"
-                        disabled={isProcessing}
-                      >
-                        {isProcessing ? (
-                          <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> PROCESSANDO</>
+                          </div>
                         ) : (
-                          "PAGAR E FINALIZAR"
+                          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300 py-4 text-center">
+                             <div className="space-y-2">
+                               <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Pagamento via Cartão</p>
+                               <div className="bg-primary/5 p-8 rounded-2xl border border-primary/20 space-y-4">
+                                 <CreditCard className="w-12 h-12 mx-auto text-primary mb-4" />
+                                 <p className="text-lg text-white font-medium">
+                                   O pagamento via cartão de crédito é realizado diretamente pelo WhatsApp.
+                                 </p>
+                                 <p className="text-sm text-muted-foreground">
+                                   Clique em "Pagar e Finalizar" para ser redirecionado e concluir sua inscrição com nossa equipe.
+                                 </p>
+                               </div>
+                             </div>
+                          </div>
                         )}
-                      </Button>
-                    </div>
-                  </form>
-                </Form>
+                      </div>
+
+                      <div className="flex gap-3">
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          onClick={() => setStep(1)}
+                          className="flex-1 h-14 border-primary/20 hover:bg-primary/10 text-primary"
+                          disabled={isProcessing}
+                        >
+                          <ArrowLeft className="mr-2 w-5 h-5" /> VOLTAR
+                        </Button>
+                        <Button 
+                          type="submit" 
+                          className="flex-[2] h-14 text-lg font-display tracking-widest bg-gradient-to-r from-primary to-secondary hover:brightness-110 transition-all shadow-lg shadow-primary/20 text-background rounded-xl"
+                          disabled={isProcessing}
+                        >
+                          {isProcessing ? (
+                            <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> PROCESSANDO</>
+                          ) : (
+                            "PAGAR E FINALIZAR"
+                          )}
+                        </Button>
+                      </div>
+                    </form>
+                  </Form>
+                </div>
               </motion.div>
             )}
 
