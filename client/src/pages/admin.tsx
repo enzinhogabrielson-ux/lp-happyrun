@@ -54,7 +54,7 @@ function LoginPage({ onLogin }: { onLogin: () => void }) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (username === "admin" && password === "humani2025") {
+    if (username === "admin" && password === "admin") {
       onLogin();
     } else {
       setError(true);
@@ -115,11 +115,6 @@ function LoginPage({ onLogin }: { onLogin: () => void }) {
               Entrar
             </Button>
           </form>
-
-          <div className="mt-6 p-4 bg-muted/20 rounded-lg border border-primary/10 text-center">
-             <p className="text-xs text-muted-foreground">Credenciais de Teste:</p>
-             <p className="text-xs font-mono text-primary mt-1">admin / humani2025</p>
-          </div>
         </motion.div>
       </motion.div>
     </div>
