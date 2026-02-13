@@ -163,8 +163,9 @@ export default function LandingPage() {
             <h1 className="text-6xl lg:text-9xl font-display leading-[0.9] mb-6 text-white drop-shadow-2xl whitespace-nowrap">
               Happy <span className="text-primary glow-text">Run</span>
             </h1>
-            <p className="text-lg lg:text-xl text-muted-foreground font-light max-w-2xl mx-auto lg:mx-0 whitespace-nowrap">
-              Corrida com Happy Hour em homenagem às mulheres. Aberto ao público!
+            <p className="text-lg lg:text-xl text-muted-foreground font-light max-w-2xl mx-auto lg:mx-0">
+              Corrida com Happy Hour em homenagem às mulheres. <br/>
+              Aberto ao público!
             </p>
           </motion.div>
 
