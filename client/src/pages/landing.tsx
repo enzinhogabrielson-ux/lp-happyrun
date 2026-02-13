@@ -338,33 +338,27 @@ export default function LandingPage() {
                       name="paymentMethod"
                       render={({ field }) => (
                         <FormItem className="grid grid-cols-2 gap-4 space-y-0">
-                          <FormLabel 
+                          <div 
                             className={`
                               flex flex-col items-center justify-center p-4 rounded-xl border-2 cursor-pointer transition-all h-24
-                              ${field.value === 'pix' ? 'border-primary bg-primary/10 text-primary' : 'border-muted bg-background/50 text-muted-foreground hover:border-primary/50'}
+                              ${paymentMethod === 'pix' ? 'border-primary bg-primary/10 text-primary' : 'border-muted bg-background/50 text-muted-foreground hover:border-primary/50'}
                             `}
                             onClick={() => formPayment.setValue("paymentMethod", "pix")}
                           >
-                             <FormControl>
-                               <input type="radio" className="hidden" {...field} value="pix" checked={field.value === 'pix'} />
-                             </FormControl>
                              <QrCode className="w-8 h-8 mb-2" />
                              <span className="text-xs font-bold uppercase">Pix</span>
-                          </FormLabel>
+                          </div>
                           
-                          <FormLabel 
+                          <div 
                             className={`
                               flex flex-col items-center justify-center p-4 rounded-xl border-2 cursor-pointer transition-all h-24
-                              ${field.value === 'credit_card' ? 'border-primary bg-primary/10 text-primary' : 'border-muted bg-background/50 text-muted-foreground hover:border-primary/50'}
+                              ${paymentMethod === 'credit_card' ? 'border-primary bg-primary/10 text-primary' : 'border-muted bg-background/50 text-muted-foreground hover:border-primary/50'}
                             `}
                             onClick={() => formPayment.setValue("paymentMethod", "credit_card")}
                           >
-                             <FormControl>
-                               <input type="radio" className="hidden" {...field} value="credit_card" checked={field.value === 'credit_card'} />
-                             </FormControl>
                              <CreditCard className="w-8 h-8 mb-2" />
                              <span className="text-xs font-bold uppercase">Cartão</span>
-                          </FormLabel>
+                          </div>
                         </FormItem>
                       )}
                     />
