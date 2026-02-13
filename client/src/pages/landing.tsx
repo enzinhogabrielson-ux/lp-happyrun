@@ -158,11 +158,11 @@ export default function LandingPage() {
               <img src={logoHumani} alt="Humani Treinamentos" className="h-16 md:h-20 object-contain" />
             </div>
             <h2 className="text-primary font-bold tracking-widest uppercase mb-2 text-xl">
-              Happy Run
+              Corrida Das Mulheres
             </h2>
             <h1 className="text-5xl lg:text-7xl font-display leading-[0.9] mb-6 text-white drop-shadow-2xl">
-              Corrida <br />
-              <span className="text-primary glow-text">Das Mulheres</span>
+              Happy <br />
+              <span className="text-primary glow-text">Run</span>
             </h1>
             <p className="text-lg lg:text-xl text-muted-foreground font-light max-w-md mx-auto lg:mx-0">
               Corrida com Happy Hour em homenagem às mulheres. <br/>
