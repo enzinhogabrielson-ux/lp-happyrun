@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Corrida Humani Treinamentos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Work+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #0ADDC8;
+            --primary-dark: #08b9a7;
+            --primary-light: #2de8d3;
+            --dark: #0a0f1e;
+            --gray: #1a1f2e;
+            --light: #ffffff;
+            --text: #e8e8e8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        body {
+            font-family: 'Work Sans', sans-serif;
+            background: var(--dark);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        /* Login Screen */
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0a0f1e 0%, #1a1f2e 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-container::before {
+            content: '';
+            position: absolute;
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(10, 221, 200, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            top: -200px;
+            right: -200px;
+            animation: pulse 8s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .login-box {
+            background: rgba(26, 31, 46, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(10, 221, 200, 0.2);
+            border-radius: 20px;
+            padding: 50px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 2;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .login-logo {
+            font-size: 1rem;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .login-header h1 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 3rem;
+            color: var(--light);
+            margin-bottom: 5px;
+        }
+
+        .login-header p {
+            color: var(--text);
+            font-size: 0.95rem;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 15px 20px;
+            background: rgba(10, 15, 30, 0.8);
+            border: 2px solid rgba(10, 221, 200, 0.3);
+            border-radius: 12px;
+            color: var(--light);
+            font-size: 1rem;
+            font-family: 'Work Sans', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(10, 15, 30, 0.95);
+            box-shadow: 0 0 0 4px rgba(10, 221, 200, 0.1);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border: none;
+            border-radius: 12px;
+            color: var(--dark);
+            font-size: 1rem;
+            font-weight: 800;
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            box-shadow: 0 10px 30px rgba(10, 221, 200, 0.3);
+            margin-top: 10px;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(10, 221, 200, 0.4);
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        /* Dashboard */
+        .dashboard {
+            display: none;
+            min-height: 100vh;
+            background: var(--dark);
+        }
+
+        .dashboard.active {
+            display: block;
+        }
+
+        .dashboard-header {
+            background: var(--gray);
+            border-bottom: 2px solid rgba(10, 221, 200, 0.2);
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-title h1 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.8rem;
+            color: var(--light);
+        }
+
+        .header-title .brand {
+            color: var(--primary);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .logout-btn {
+            padding: 10px 24px;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--danger);
+            border-radius: 8px;
+            color: var(--danger);
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: var(--danger);
+            color: var(--light);
+        }
+
+        .dashboard-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 30px;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: var(--gray);
+            border: 1px solid rgba(10, 221, 200, 0.2);
+            border-radius: 16px;
+            padding: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(10, 221, 200, 0.15);
+        }
+
+        .stat-label {
+            color: var(--text);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .stat-value {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 3rem;
+            color: var(--primary);
+            line-height: 1;
+        }
+
+        .stat-card.success .stat-value {
+            color: var(--success);
+        }
+
+        .stat-card.warning .stat-value {
+            color: var(--warning);
+        }
+
+        /* Table */
+        .table-container {
+            background: var(--gray);
+            border: 1px solid rgba(10, 221, 200, 0.2);
+            border-radius: 16px;
+            padding: 30px;
+            overflow-x: auto;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .table-header h2 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2rem;
+            color: var(--light);
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            background: rgba(10, 221, 200, 0.1);
+            border: 1px solid rgba(10, 221, 200, 0.3);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn:hover,
+        .filter-btn.active {
+            background: var(--primary);
+            color: var(--dark);
+            border-color: var(--primary);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 10px;
+        }
+
+        thead th {
+            text-align: left;
+            padding: 12px 15px;
+            color: var(--primary);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        tbody tr {
+            background: rgba(10, 15, 30, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        tbody tr:hover {
+            background: rgba(10, 221, 200, 0.05);
+            transform: scale(1.01);
+        }
+
+        tbody td {
+            padding: 18px 15px;
+            border-top: 1px solid rgba(10, 221, 200, 0.1);
+            border-bottom: 1px solid rgba(10, 221, 200, 0.1);
+        }
+
+        tbody td:first-child {
+            border-left: 1px solid rgba(10, 221, 200, 0.1);
+            border-radius: 8px 0 0 8px;
+        }
+
+        tbody td:last-child {
+            border-right: 1px solid rgba(10, 221, 200, 0.1);
+            border-radius: 0 8px 8px 0;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-badge.pago {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+
+        .status-badge.pendente {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+            border: 1px solid var(--warning);
+        }
+
+        .toggle-payment {
+            padding: 8px 16px;
+            background: transparent;
+            border: 1px solid var(--primary);
+            border-radius: 6px;
+            color: var(--primary);
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-payment:hover {
+            background: var(--primary);
+            color: var(--dark);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text);
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .empty-state h3 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.8rem;
+            color: var(--light);
+            margin-bottom: 10px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .login-box {
+                padding: 30px 25px;
+                margin: 20px;
+            }
+
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .table-container {
+                padding: 20px 15px;
+            }
+
+            table {
+                font-size: 0.85rem;
+            }
+
+            .filter-buttons {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginContainer" class="login-container">
+        <div class="login-box">
+            <div class="login-header">
+                <div class="login-logo">Humani Treinamentos</div>
+                <h1>Admin</h1>
+                <p>Painel de Controle de Inscrições</p>
+            </div>
+
+            <div id="errorMessage" class="error-message">
+                Usuário ou senha incorretos
+            </div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Usuário</label>
+                    <input type="text" id="username" placeholder="Digite o usuário" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Senha</label>
+                    <input type="password" id="password" placeholder="Digite a senha" required>
+                </div>
+
+                <button type="submit" class="login-btn">Entrar</button>
+            </form>
+
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(10, 221, 200, 0.2); text-align: center; font-size: 0.85rem; color: var(--text);">
+                <strong>Credenciais de acesso:</strong><br>
+                Usuário: <code style="color: var(--primary);">admin</code><br>
+                Senha: <code style="color: var(--primary);">humani2025</code>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboard" class="dashboard">
+        <header class="dashboard-header">
+            <div class="header-content">
+                <div class="header-title">
+                    <div>
+                        <div class="brand">Humani Treinamentos</div>
+                        <h1>Painel de Inscrições</h1>
+                    </div>
+                </div>
+                <button class="logout-btn" onclick="logout()">Sair</button>
+            </div>
+        </header>
+
+        <div class="dashboard-content">
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Total de Inscrições</div>
+                    <div class="stat-value" id="totalInscricoes">0</div>
+                </div>
+
+                <div class="stat-card success">
+                    <div class="stat-label">Pagamentos Confirmados</div>
+                    <div class="stat-value" id="totalPagos">0</div>
+                </div>
+
+                <div class="stat-card warning">
+                    <div class="stat-label">Pagamentos Pendentes</div>
+                    <div class="stat-value" id="totalPendentes">0</div>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h2>Lista de Inscritos</h2>
+                    <div class="filter-buttons">
+                        <button class="filter-btn active" onclick="filterTable('todos')">Todos</button>
+                        <button class="filter-btn" onclick="filterTable('pago')">Pagos</button>
+                        <button class="filter-btn" onclick="filterTable('pendente')">Pendentes</button>
+                    </div>
+                </div>
+
+                <div id="tableContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Credenciais de admin
+        const ADMIN_USER = 'admin';
+        const ADMIN_PASS = 'humani2025';
+
+        // Login
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (username === ADMIN_USER && password === ADMIN_PASS) {
+                document.getElementById('loginContainer').style.display = 'none';
+                document.getElementById('dashboard').classList.add('active');
+                loadDashboard();
+            } else {
+                document.getElementById('errorMessage').classList.add('show');
+                setTimeout(() => {
+                    document.getElementById('errorMessage').classList.remove('show');
+                }, 3000);
+            }
+        });
+
+        // Logout
+        function logout() {
+            document.getElementById('loginContainer').style.display = 'flex';
+            document.getElementById('dashboard').classList.remove('active');
+            document.getElementById('loginForm').reset();
+        }
+
+        // Carregar dashboard
+        function loadDashboard() {
+            const inscricoes = JSON.parse(localStorage.getItem('inscricoes') || '[]');
+            
+            // Atualizar stats
+            const totalPagos = inscricoes.filter(i => i.pagamentoConfirmado).length;
+            const totalPendentes = inscricoes.length - totalPagos;
+            
+            document.getElementById('totalInscricoes').textContent = inscricoes.length;
+            document.getElementById('totalPagos').textContent = totalPagos;
+            document.getElementById('totalPendentes').textContent = totalPendentes;
+
+            // Renderizar tabela
+            renderTable(inscricoes);
+        }
+
+        // Renderizar tabela
+        function renderTable(inscricoes) {
+            const container = document.getElementById('tableContent');
+
+            if (inscricoes.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📋</div>
+                        <h3>Nenhuma inscrição ainda</h3>
+                        <p>As inscrições aparecerão aqui conforme forem sendo realizadas.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let tableHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Telefone</th>
+                            <th>Tamanho</th>
+                            <th>Data</th>
+                            <th>Status</th>
+                            <th>Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            inscricoes.forEach((inscricao, index) => {
+                const data = new Date(inscricao.dataInscricao).toLocaleString('pt-BR');
+                const status = inscricao.pagamentoConfirmado ? 'pago' : 'pendente';
+                const statusText = inscricao.pagamentoConfirmado ? 'Pago' : 'Pendente';
+
+                tableHTML += `
+                    <tr data-status="${status}">
+                        <td><strong>${inscricao.nome}</strong></td>
+                        <td>${inscricao.telefone}</td>
+                        <td><strong>${inscricao.tamanho}</strong></td>
+                        <td>${data}</td>
+                        <td><span class="status-badge ${status}">${statusText}</span></td>
+                        <td>
+                            <button class="toggle-payment" onclick="togglePayment(${index})">
+                                ${inscricao.pagamentoConfirmado ? 'Marcar Pendente' : 'Marcar Pago'}
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tableHTML += `
+                    </tbody>
+                </table>
+            `;
+
+            container.innerHTML = tableHTML;
+        }
+
+        // Toggle payment status
+        function togglePayment(index) {
+            const inscricoes = JSON.parse(localStorage.getItem('inscricoes') || '[]');
+            inscricoes[index].pagamentoConfirmado = !inscricoes[index].pagamentoConfirmado;
+            localStorage.setItem('inscricoes', JSON.stringify(inscricoes));
+            loadDashboard();
+        }
+
+        // Filtrar tabela
+        let currentFilter = 'todos';
+        function filterTable(filter) {
+            currentFilter = filter;
+            
+            // Atualizar botões ativos
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Filtrar inscrições
+            const inscricoes = JSON.parse(localStorage.getItem('inscricoes') || '[]');
+            let filtered = inscricoes;
+
+            if (filter === 'pago') {
+                filtered = inscricoes.filter(i => i.pagamentoConfirmado);
+            } else if (filter === 'pendente') {
+                filtered = inscricoes.filter(i => !i.pagamentoConfirmado);
+            }
+
+            renderTable(filtered);
+        }
+
+        // Auto-refresh a cada 30 segundos
+        setInterval(() => {
+            if (document.getElementById('dashboard').classList.contains('active')) {
+                loadDashboard();
+            }
+        }, 30000);
+    </script>
+</body>
+</html>
