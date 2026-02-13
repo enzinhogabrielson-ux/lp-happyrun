@@ -355,18 +355,28 @@ export default function LandingPage() {
 
                     <div className="mt-6 p-4 bg-background/30 rounded-xl border border-primary/10 min-h-[220px]">
                       {paymentMethod === 'pix' ? (
-                        <div className="text-center space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                           <div className="bg-white p-2 w-32 h-32 mx-auto rounded-lg">
-                             <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(config.pixKey)}`} alt="QR Code Pix" className="w-full h-full object-contain" />
+                        <div className="text-center space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300 py-4">
+                           <div className="space-y-2">
+                             <p className="text-sm text-muted-foreground uppercase tracking-widest font-bold">Valor da Inscrição</p>
+                             <div className="text-5xl font-display text-white">R$ 5,00</div>
                            </div>
-                           <div>
-                             <p className="text-xs text-muted-foreground mb-2">Escaneie o QR Code ou copie o código abaixo</p>
-                             <div className="flex gap-2">
-                               <Input value={config.pixKey.length > 30 ? config.pixKey.substring(0, 30) + "..." : config.pixKey} readOnly className="h-10 text-xs font-mono bg-background/50" />
-                               <Button type="button" size="icon" variant="outline" onClick={copyPixCode} className="shrink-0 border-primary/30 text-primary hover:bg-primary/10">
-                                 <Copy className="w-4 h-4" />
-                               </Button>
+                           
+                           <div className="bg-primary/5 p-6 rounded-2xl border border-primary/20 space-y-4">
+                             <p className="text-xs text-primary font-bold uppercase tracking-wider mb-2">Chave PIX (Copia e Cola)</p>
+                             <div 
+                               onClick={copyPixCode}
+                               className="relative group cursor-pointer bg-background/50 border border-primary/30 rounded-xl p-4 transition-all hover:bg-primary/10 hover:border-primary/50"
+                             >
+                               <p className="font-mono text-sm break-all text-white/90 uppercase leading-relaxed select-all">
+                                 {config.pixKey}
+                               </p>
+                               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-background/80 backdrop-blur-sm rounded-xl">
+                                 <span className="flex items-center gap-2 text-primary font-bold uppercase tracking-widest text-sm">
+                                   <Copy className="w-4 h-4" /> Copiar Código
+                                 </span>
+                               </div>
                              </div>
+                             <p className="text-xs text-muted-foreground">Clique no código acima para copiar</p>
                            </div>
                         </div>
                       ) : (
