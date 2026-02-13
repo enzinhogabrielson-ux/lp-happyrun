@@ -33,14 +33,6 @@ const paymentSchema = z.object({
   cardName: z.string().optional(),
   cardExpiry: z.string().optional(),
   cardCvv: z.string().optional(),
-}).refine((data) => {
-  if (data.paymentMethod === "credit_card") {
-    return !!data.cardNumber && !!data.cardName && !!data.cardExpiry && !!data.cardCvv;
-  }
-  return true;
-}, {
-  message: "Preencha todos os dados do cartão",
-  path: ["cardNumber"], // Focus error on card number field
 });
 
 type PersonalData = z.infer<typeof personalDataSchema>;
@@ -404,110 +396,23 @@ export default function LandingPage() {
                            </div>
                         </div>
                       ) : (
-                        <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                           <div className="flex items-center justify-between mb-4">
-                             <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Dados do Cartão</p>
-                             <div className="flex gap-2">
-                               <div className="w-8 h-5 bg-white/10 rounded flex items-center justify-center text-[8px] font-bold">VISA</div>
-                               <div className="w-8 h-5 bg-white/10 rounded flex items-center justify-center text-[8px] font-bold">MASTER</div>
+                        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300 py-4 text-center">
+                           <div className="space-y-2">
+                             <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Pagamento via Cartão</p>
+                             <div className="bg-primary/5 p-8 rounded-2xl border border-primary/20 space-y-4">
+                               <CreditCard className="w-12 h-12 mx-auto text-primary mb-4" />
+                               <p className="text-lg text-white font-medium">
+                                 O pagamento via cartão de crédito é realizado diretamente pelo WhatsApp.
+                               </p>
+                               <p className="text-sm text-muted-foreground">
+                                 Clique em "Pagar e Finalizar" para ser redirecionado e concluir sua inscrição com nossa equipe.
+                               </p>
                              </div>
                            </div>
                            
-                          <FormField
-                            control={formPayment.control}
-                            name="cardNumber"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-xs font-bold text-primary uppercase tracking-wider">Número do Cartão</FormLabel>
-                                <FormControl>
-                                  <div className="relative">
-                                    <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                                    <Input 
-                                      placeholder="0000 0000 0000 0000" 
-                                      {...field} 
-                                      maxLength={19}
-                                      onChange={(e) => {
-                                        // Mask card number
-                                        let v = e.target.value.replace(/\D/g, '');
-                                        if (v.length > 16) v = v.slice(0, 16);
-                                        const parts = v.match(/[\s\S]{1,4}/g) || [];
-                                        field.onChange(parts.join(' '));
-                                      }}
-                                      className="pl-11 bg-background/50 border-primary/20 h-12 font-mono" 
-                                    />
-                                  </div>
-                                </FormControl>
-                              </FormItem>
-                            )}
-                          />
                           
-                          <FormField
-                            control={formPayment.control}
-                            name="cardName"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-xs font-bold text-primary uppercase tracking-wider">Nome no Cartão</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="COMO ESTÁ NO CARTÃO" {...field} className="bg-background/50 border-primary/20 h-12 uppercase" />
-                                </FormControl>
-                              </FormItem>
-                            )}
-                          />
 
-                          <div className="grid grid-cols-2 gap-4">
-                             <FormField
-                              control={formPayment.control}
-                              name="cardExpiry"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel className="text-xs font-bold text-primary uppercase tracking-wider">Validade</FormLabel>
-                                  <FormControl>
-                                    <Input 
-                                      placeholder="MM/AA" 
-                                      {...field} 
-                                      maxLength={5}
-                                      onChange={(e) => {
-                                        // Mask expiry date
-                                        let v = e.target.value.replace(/\D/g, '');
-                                        if (v.length > 4) v = v.slice(0, 4);
-                                        if (v.length > 2) v = `${v.slice(0, 2)}/${v.slice(2)}`;
-                                        field.onChange(v);
-                                      }}
-                                      className="bg-background/50 border-primary/20 h-12 text-center" 
-                                    />
-                                  </FormControl>
-                                </FormItem>
-                              )}
-                            />
-                            <FormField
-                              control={formPayment.control}
-                              name="cardCvv"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel className="text-xs font-bold text-primary uppercase tracking-wider">CVV</FormLabel>
-                                  <FormControl>
-                                    <div className="relative">
-                                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground" />
-                                      <Input 
-                                        placeholder="123" 
-                                        {...field} 
-                                        maxLength={4}
-                                        className="pl-10 bg-background/50 border-primary/20 h-12" 
-                                        type="password"
-                                      />
-                                    </div>
-                                  </FormControl>
-                                </FormItem>
-                              )}
-                            />
-                          </div>
 
-                          <div className="pt-2">
-                            <div className="flex items-center gap-2 p-3 bg-primary/5 rounded-lg border border-primary/10">
-                              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                              <span className="text-xs text-muted-foreground">Conexão segura com Gateway de Pagamento</span>
-                            </div>
-                          </div>
                         </div>
                       )}
                     </div>
