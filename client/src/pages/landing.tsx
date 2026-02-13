@@ -144,9 +144,9 @@ export default function LandingPage() {
         <div className="absolute top-1/2 w-full h-[1px] bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
       </div>
 
-      <div className="container max-w-6xl relative z-10 grid lg:grid-cols-2 gap-12 lg:gap-24 items-center flex-grow pt-8">
+      <div className="container max-w-6xl relative z-10 grid lg:grid-cols-2 gap-12 lg:gap-24 items-center flex-grow pt-8 mx-auto">
         {/* Left Column: Hero Text */}
-        <div className="space-y-8 text-center lg:text-left">
+        <div className="space-y-8 text-center lg:text-left flex flex-col justify-center">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
