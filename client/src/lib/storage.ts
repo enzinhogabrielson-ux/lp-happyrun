@@ -12,10 +12,9 @@ export interface Inscription {
 
 interface InscriptionStore {
   inscriptions: Inscription[];
-  addInscription: (data: Omit<Inscription, 'id' | 'dataInscricao' | 'pagamentoConfirmado'>) => void;
+  addInscription: (data: Omit<Inscription, 'id' | 'dataInscricao'>) => void;
   togglePayment: (id: string) => void;
   removeInscription: (id: string) => void;
-  // stats is a getter, not state, so we can implement it as a hook selector or just calculate it in component
 }
 
 export const useInscriptionStore = create<InscriptionStore>()(
@@ -28,7 +27,6 @@ export const useInscriptionStore = create<InscriptionStore>()(
           {
             ...data,
             id: Math.random().toString(36).substring(7),
-            pagamentoConfirmado: false,
             dataInscricao: new Date().toISOString(),
           },
         ],

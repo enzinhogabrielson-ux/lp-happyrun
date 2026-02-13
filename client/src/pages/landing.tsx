@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -15,48 +15,94 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { MapPin, Shirt } from "lucide-react";
+import { MapPin, Shirt, CreditCard, QrCode, ArrowRight, ArrowLeft, Check, Copy, Loader2 } from "lucide-react";
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 
-const formSchema = z.object({
+// Schema for Step 1
+const personalDataSchema = z.object({
   nome: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
   telefone: z.string().min(10, "Telefone inválido"),
   tamanho: z.string().min(1, "Selecione um tamanho"),
-  pagamentoConfirmado: z.boolean().refine((val) => val === true, {
-    message: "Você deve confirmar o pagamento para prosseguir",
-  }),
 });
+
+// Schema for Step 2 (Payment)
+const paymentSchema = z.object({
+  paymentMethod: z.enum(["pix", "credit_card"]),
+  cardNumber: z.string().optional(),
+  cardName: z.string().optional(),
+  cardExpiry: z.string().optional(),
+  cardCvv: z.string().optional(),
+}).refine((data) => {
+  if (data.paymentMethod === "credit_card") {
+    return !!data.cardNumber && !!data.cardName && !!data.cardExpiry && !!data.cardCvv;
+  }
+  return true;
+}, {
+  message: "Preencha todos os dados do cartão",
+  path: ["cardNumber"], // Focus error on card number field
+});
+
+type PersonalData = z.infer<typeof personalDataSchema>;
+type PaymentData = z.infer<typeof paymentSchema>;
 
 export default function LandingPage() {
   const { addInscription } = useInscriptionStore();
   const { toast } = useToast();
-  const [isSuccess, setIsSuccess] = useState(false);
+  
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [personalData, setPersonalData] = useState<PersonalData | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  // Form 1: Personal Data
+  const formPersonal = useForm<PersonalData>({
+    resolver: zodResolver(personalDataSchema),
     defaultValues: {
       nome: "",
       telefone: "",
       tamanho: "",
-      pagamentoConfirmado: false,
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // Add artificial delay for "processing" feel
+  // Form 2: Payment
+  const formPayment = useForm<PaymentData>({
+    resolver: zodResolver(paymentSchema),
+    defaultValues: {
+      paymentMethod: "pix",
+      cardNumber: "",
+      cardName: "",
+      cardExpiry: "",
+      cardCvv: "",
+    },
+  });
+
+  const paymentMethod = formPayment.watch("paymentMethod");
+
+  // Handle Step 1 Submit
+  const onPersonalSubmit = (data: PersonalData) => {
+    setPersonalData(data);
+    setStep(2);
+  };
+
+  // Handle Step 2 Submit (Final)
+  const onPaymentSubmit = (paymentData: PaymentData) => {
+    if (!personalData) return;
+
+    setIsProcessing(true);
+
+    // Simulate Payment Processing
     setTimeout(() => {
       addInscription({
-        nome: values.nome,
-        telefone: values.telefone,
-        tamanho: values.tamanho,
+        nome: personalData.nome,
+        telefone: personalData.telefone,
+        tamanho: personalData.tamanho,
+        pagamentoConfirmado: true
       });
-      setIsSuccess(true);
-      form.reset();
       
-      // Auto hide success after 5s
-      setTimeout(() => setIsSuccess(false), 5000);
-    }, 800);
-  }
+      setIsProcessing(false);
+      setStep(3);
+    }, 2000);
+  };
 
   // Format phone number
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -70,7 +116,15 @@ export default function LandingPage() {
       value = `${value.slice(0, 9)}-${value.slice(9)}`;
     }
     
-    form.setValue("telefone", value);
+    formPersonal.setValue("telefone", value);
+  };
+
+  const copyPixCode = () => {
+    navigator.clipboard.writeText("00020126580014BR.GOV.BCB.PIX0136123e4567-e89b-12d3-a456-426614174000520400005303986540510.005802BR5913Humani Eventos6009SAO PAULO62070503***6304E2CA");
+    toast({
+      title: "Código Copiado!",
+      description: "Cole no seu app do banco para pagar.",
+    });
   };
 
   return (
@@ -138,88 +192,45 @@ export default function LandingPage() {
           </motion.div>
         </div>
 
-        {/* Right Column: Form */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="w-full"
-        >
-          {isSuccess ? (
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="glass-panel p-10 rounded-3xl text-center space-y-6"
-            >
-              <div className="w-20 h-20 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: "spring", stiffness: 200, damping: 10 }}
-                >
-                  <svg className="w-10 h-10 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                  </svg>
-                </motion.div>
-              </div>
-              <h3 className="text-3xl font-display text-primary">Inscrição Confirmada!</h3>
-              <p className="text-muted-foreground">Sua vaga está garantida. Prepare-se para o desafio!</p>
-              <Button 
-                variant="outline" 
-                className="mt-6 border-primary/30 hover:bg-primary/10 text-primary"
-                onClick={() => setIsSuccess(false)}
+        {/* Right Column: Multi-step Form */}
+        <div className="w-full min-h-[500px] flex items-center">
+          <AnimatePresence mode="wait">
+            {step === 1 && (
+              <motion.div
+                key="step1"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                className="w-full glass-panel p-8 md:p-10 rounded-3xl relative overflow-hidden"
               >
-                Nova Inscrição
-              </Button>
-            </motion.div>
-          ) : (
-            <div className="glass-panel p-8 md:p-10 rounded-3xl relative overflow-hidden">
-               {/* Shine effect */}
-               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent opacity-50" />
-               
-              <div className="mb-8 text-center">
-                <h3 className="text-3xl font-display text-white mb-2">Garanta sua Vaga</h3>
-                <p className="text-sm text-muted-foreground">Preencha seus dados abaixo</p>
-              </div>
+                <div className="mb-8 text-center">
+                  <div className="flex justify-center mb-4">
+                    <div className="flex items-center gap-2">
+                       <span className="w-8 h-8 rounded-full bg-primary text-background font-bold flex items-center justify-center">1</span>
+                       <div className="w-12 h-1 bg-muted rounded-full overflow-hidden">
+                         <div className="w-1/2 h-full bg-primary/50" />
+                       </div>
+                       <span className="w-8 h-8 rounded-full bg-muted text-muted-foreground font-bold flex items-center justify-center">2</span>
+                    </div>
+                  </div>
+                  <h3 className="text-3xl font-display text-white mb-2">Dados Pessoais</h3>
+                  <p className="text-sm text-muted-foreground">Vamos começar sua inscrição</p>
+                </div>
 
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                  <FormField
-                    control={form.control}
-                    name="nome"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-primary font-bold uppercase text-xs tracking-wider">Nome Completo</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="Digite seu nome completo" 
-                            {...field} 
-                            className="bg-background/50 border-primary/20 focus-visible:ring-primary/50 h-12 rounded-xl"
-                            data-testid="input-nome"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <div className="grid grid-cols-2 gap-4">
+                <Form {...formPersonal}>
+                  <form onSubmit={formPersonal.handleSubmit(onPersonalSubmit)} className="space-y-6">
                     <FormField
-                      control={form.control}
-                      name="telefone"
+                      control={formPersonal.control}
+                      name="nome"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-primary font-bold uppercase text-xs tracking-wider">Telefone</FormLabel>
+                          <FormLabel className="text-primary font-bold uppercase text-xs tracking-wider">Nome Completo</FormLabel>
                           <FormControl>
                             <Input 
-                              placeholder="(00) 00000-0000" 
+                              placeholder="Digite seu nome completo" 
                               {...field} 
-                              onChange={(e) => {
-                                handlePhoneChange(e);
-                                field.onChange(e);
-                              }}
                               className="bg-background/50 border-primary/20 focus-visible:ring-primary/50 h-12 rounded-xl"
-                              data-testid="input-phone"
                             />
                           </FormControl>
                           <FormMessage />
@@ -227,67 +238,267 @@ export default function LandingPage() {
                       )}
                     />
 
-                    <FormField
-                      control={form.control}
-                      name="tamanho"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-primary font-bold uppercase text-xs tracking-wider">Camisa</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={formPersonal.control}
+                        name="telefone"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-primary font-bold uppercase text-xs tracking-wider">Telefone</FormLabel>
                             <FormControl>
-                              <SelectTrigger className="bg-background/50 border-primary/20 focus:ring-primary/50 h-12 rounded-xl" data-testid="select-size">
-                                <SelectValue placeholder="Tamanho" />
-                              </SelectTrigger>
+                              <Input 
+                                placeholder="(00) 00000-0000" 
+                                {...field} 
+                                onChange={(e) => {
+                                  handlePhoneChange(e);
+                                  field.onChange(e);
+                                }}
+                                className="bg-background/50 border-primary/20 focus-visible:ring-primary/50 h-12 rounded-xl"
+                              />
                             </FormControl>
-                            <SelectContent className="bg-card border-primary/20">
-                              {["PP", "P", "M", "G", "GG", "XG"].map((size) => (
-                                <SelectItem key={size} value={size} className="focus:bg-primary/20 focus:text-primary cursor-pointer">
-                                  {size}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={formPersonal.control}
+                        name="tamanho"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-primary font-bold uppercase text-xs tracking-wider">Camisa</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger className="bg-background/50 border-primary/20 focus:ring-primary/50 h-12 rounded-xl">
+                                  <SelectValue placeholder="Tamanho" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent className="bg-card border-primary/20">
+                                {["PP", "P", "M", "G", "GG", "XG"].map((size) => (
+                                  <SelectItem key={size} value={size} className="focus:bg-primary/20 focus:text-primary cursor-pointer">
+                                    {size}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <Button 
+                      type="submit" 
+                      className="w-full h-14 text-lg font-display tracking-widest bg-primary hover:bg-primary-dark transition-all shadow-lg shadow-primary/20 text-background rounded-xl mt-4"
+                    >
+                      CONTINUAR <ArrowRight className="ml-2 w-5 h-5" />
+                    </Button>
+                  </form>
+                </Form>
+              </motion.div>
+            )}
+
+            {step === 2 && (
+              <motion.div
+                key="step2"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                className="w-full glass-panel p-8 md:p-10 rounded-3xl relative overflow-hidden"
+              >
+                <div className="mb-6 text-center">
+                  <div className="flex justify-center mb-4">
+                    <div className="flex items-center gap-2">
+                       <span className="w-8 h-8 rounded-full bg-primary/20 text-primary font-bold flex items-center justify-center cursor-pointer" onClick={() => setStep(1)}><Check className="w-4 h-4"/></span>
+                       <div className="w-12 h-1 bg-muted rounded-full overflow-hidden">
+                         <div className="w-full h-full bg-primary" />
+                       </div>
+                       <span className="w-8 h-8 rounded-full bg-primary text-background font-bold flex items-center justify-center">2</span>
+                    </div>
+                  </div>
+                  <h3 className="text-3xl font-display text-white mb-2">Pagamento</h3>
+                  <p className="text-sm text-muted-foreground">Escolha a forma de pagamento</p>
+                </div>
+
+                <Form {...formPayment}>
+                  <form onSubmit={formPayment.handleSubmit(onPaymentSubmit)} className="space-y-6">
+                    <FormField
+                      control={formPayment.control}
+                      name="paymentMethod"
+                      render={({ field }) => (
+                        <FormItem className="grid grid-cols-2 gap-4 space-y-0">
+                          <FormLabel className={`
+                            flex flex-col items-center justify-center p-4 rounded-xl border-2 cursor-pointer transition-all h-24
+                            ${field.value === 'pix' ? 'border-primary bg-primary/10 text-primary' : 'border-muted bg-background/50 text-muted-foreground hover:border-primary/50'}
+                          `}>
+                             <FormControl>
+                               <input type="radio" className="hidden" {...field} value="pix" checked={field.value === 'pix'} />
+                             </FormControl>
+                             <QrCode className="w-8 h-8 mb-2" />
+                             <span className="text-xs font-bold uppercase">Pix</span>
+                          </FormLabel>
+                          
+                          <FormLabel className={`
+                            flex flex-col items-center justify-center p-4 rounded-xl border-2 cursor-pointer transition-all h-24
+                            ${field.value === 'credit_card' ? 'border-primary bg-primary/10 text-primary' : 'border-muted bg-background/50 text-muted-foreground hover:border-primary/50'}
+                          `}>
+                             <FormControl>
+                               <input type="radio" className="hidden" {...field} value="credit_card" checked={field.value === 'credit_card'} />
+                             </FormControl>
+                             <CreditCard className="w-8 h-8 mb-2" />
+                             <span className="text-xs font-bold uppercase">Cartão</span>
+                          </FormLabel>
                         </FormItem>
                       )}
                     />
-                  </div>
 
-                  <FormField
-                    control={form.control}
-                    name="pagamentoConfirmado"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-xl border border-primary/20 bg-primary/5 p-4">
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                            className="data-[state=checked]:bg-primary data-[state=checked]:border-primary border-primary/50 w-5 h-5 mt-0.5"
-                            data-testid="checkbox-payment"
-                          />
-                        </FormControl>
-                        <div className="space-y-1 leading-none">
-                          <FormLabel className="text-sm font-normal cursor-pointer">
-                            Confirmo que realizei o pagamento da taxa de inscrição e concordo com os termos.
-                          </FormLabel>
-                          <FormMessage />
+                    <div className="mt-6 p-4 bg-background/30 rounded-xl border border-primary/10 min-h-[220px]">
+                      {paymentMethod === 'pix' ? (
+                        <div className="text-center space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                           <div className="bg-white p-2 w-32 h-32 mx-auto rounded-lg">
+                             <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=00020126580014BR.GOV.BCB.PIX0136123e4567-e89b-12d3-a456-426614174000520400005303986540510.005802BR5913Humani Eventos6009SAO PAULO62070503***6304E2CA`} alt="QR Code Pix" className="w-full h-full object-contain" />
+                           </div>
+                           <div>
+                             <p className="text-xs text-muted-foreground mb-2">Escaneie o QR Code ou copie o código abaixo</p>
+                             <div className="flex gap-2">
+                               <Input value="00020126580014BR.GOV.BCB.PIX..." readOnly className="h-10 text-xs font-mono bg-background/50" />
+                               <Button type="button" size="icon" variant="outline" onClick={copyPixCode} className="shrink-0 border-primary/30 text-primary hover:bg-primary/10">
+                                 <Copy className="w-4 h-4" />
+                               </Button>
+                             </div>
+                           </div>
                         </div>
-                      </FormItem>
-                    )}
-                  />
+                      ) : (
+                        <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                          <FormField
+                            control={formPayment.control}
+                            name="cardNumber"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormControl>
+                                  <Input placeholder="Número do Cartão" {...field} className="bg-background/50 border-primary/20" />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                          <div className="grid grid-cols-2 gap-4">
+                             <FormField
+                              control={formPayment.control}
+                              name="cardExpiry"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormControl>
+                                    <Input placeholder="MM/AA" {...field} className="bg-background/50 border-primary/20" maxLength={5} />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={formPayment.control}
+                              name="cardCvv"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormControl>
+                                    <Input placeholder="CVV" {...field} className="bg-background/50 border-primary/20" maxLength={3} />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                          <FormField
+                            control={formPayment.control}
+                            name="cardName"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormControl>
+                                  <Input placeholder="Nome no Cartão" {...field} className="bg-background/50 border-primary/20" />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      )}
+                    </div>
 
-                  <Button 
-                    type="submit" 
-                    className="w-full h-14 text-lg font-display tracking-widest bg-gradient-to-r from-primary to-secondary hover:brightness-110 transition-all shadow-lg shadow-primary/20 hover:shadow-primary/40 text-background rounded-xl"
-                    data-testid="button-submit"
+                    <div className="flex gap-3">
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={() => setStep(1)}
+                        className="flex-1 h-14 border-primary/20 hover:bg-primary/10 text-primary"
+                        disabled={isProcessing}
+                      >
+                        <ArrowLeft className="mr-2 w-5 h-5" /> VOLTAR
+                      </Button>
+                      <Button 
+                        type="submit" 
+                        className="flex-[2] h-14 text-lg font-display tracking-widest bg-gradient-to-r from-primary to-secondary hover:brightness-110 transition-all shadow-lg shadow-primary/20 text-background rounded-xl"
+                        disabled={isProcessing}
+                      >
+                        {isProcessing ? (
+                          <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> PROCESSANDO</>
+                        ) : (
+                          "PAGAR E FINALIZAR"
+                        )}
+                      </Button>
+                    </div>
+                  </form>
+                </Form>
+              </motion.div>
+            )}
+
+            {step === 3 && (
+              <motion.div
+                key="step3"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="w-full glass-panel p-10 rounded-3xl text-center space-y-6"
+              >
+                <div className="w-24 h-24 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 200, damping: 10, delay: 0.2 }}
                   >
-                    CONFIRMAR INSCRIÇÃO
-                  </Button>
-                </form>
-              </Form>
-            </div>
-          )}
-        </motion.div>
+                    <Check className="w-12 h-12 text-primary" strokeWidth={3} />
+                  </motion.div>
+                </div>
+                <div>
+                  <h3 className="text-4xl font-display text-primary mb-2">Sucesso!</h3>
+                  <p className="text-lg text-white font-medium">Inscrição e Pagamento Confirmados</p>
+                  <p className="text-muted-foreground mt-2 text-sm">Enviamos os detalhes para o seu WhatsApp.</p>
+                </div>
+                
+                <div className="bg-primary/5 p-4 rounded-xl border border-primary/10 text-left space-y-2 mt-6">
+                   <div className="flex justify-between text-sm">
+                     <span className="text-muted-foreground">Participante:</span>
+                     <span className="font-bold text-white">{personalData?.nome}</span>
+                   </div>
+                   <div className="flex justify-between text-sm">
+                     <span className="text-muted-foreground">Camisa:</span>
+                     <span className="font-bold text-white">{personalData?.tamanho}</span>
+                   </div>
+                   <div className="flex justify-between text-sm">
+                     <span className="text-muted-foreground">Status:</span>
+                     <span className="font-bold text-green-400">PAGO</span>
+                   </div>
+                </div>
+
+                <Button 
+                  className="w-full mt-6 h-12 border border-primary/30 hover:bg-primary/10 text-primary bg-transparent"
+                  onClick={() => {
+                    formPersonal.reset();
+                    formPayment.reset();
+                    setStep(1);
+                  }}
+                >
+                  Nova Inscrição
+                </Button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     </div>
   );
