@@ -47,7 +47,7 @@ type PersonalData = z.infer<typeof personalDataSchema>;
 type PaymentData = z.infer<typeof paymentSchema>;
 
 export default function LandingPage() {
-  const { addInscription } = useInscriptionStore();
+  const { addInscription, config } = useInscriptionStore();
   const { toast } = useToast();
   
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -120,7 +120,7 @@ export default function LandingPage() {
   };
 
   const copyPixCode = () => {
-    navigator.clipboard.writeText("00020126580014BR.GOV.BCB.PIX0136123e4567-e89b-12d3-a456-426614174000520400005303986540510.005802BR5913Humani Eventos6009SAO PAULO62070503***6304E2CA");
+    navigator.clipboard.writeText(config.pixKey);
     toast({
       title: "Código Copiado!",
       description: "Cole no seu app do banco para pagar.",
@@ -357,12 +357,12 @@ export default function LandingPage() {
                       {paymentMethod === 'pix' ? (
                         <div className="text-center space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
                            <div className="bg-white p-2 w-32 h-32 mx-auto rounded-lg">
-                             <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=00020126580014BR.GOV.BCB.PIX0136123e4567-e89b-12d3-a456-426614174000520400005303986540510.005802BR5913Humani Eventos6009SAO PAULO62070503***6304E2CA`} alt="QR Code Pix" className="w-full h-full object-contain" />
+                             <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(config.pixKey)}`} alt="QR Code Pix" className="w-full h-full object-contain" />
                            </div>
                            <div>
                              <p className="text-xs text-muted-foreground mb-2">Escaneie o QR Code ou copie o código abaixo</p>
                              <div className="flex gap-2">
-                               <Input value="00020126580014BR.GOV.BCB.PIX..." readOnly className="h-10 text-xs font-mono bg-background/50" />
+                               <Input value={config.pixKey.length > 30 ? config.pixKey.substring(0, 30) + "..." : config.pixKey} readOnly className="h-10 text-xs font-mono bg-background/50" />
                                <Button type="button" size="icon" variant="outline" onClick={copyPixCode} className="shrink-0 border-primary/30 text-primary hover:bg-primary/10">
                                  <Copy className="w-4 h-4" />
                                </Button>

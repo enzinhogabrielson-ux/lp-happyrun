@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useInscriptionStore } from "@/lib/storage";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -14,9 +14,11 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
-import { Lock, LogOut, RefreshCw, Search, Users, CheckCircle, Clock } from "lucide-react";
+import { Lock, LogOut, RefreshCw, Search, Users, CheckCircle, Clock, Settings, Save, QrCode } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Label } from "@/components/ui/label";
 
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -125,10 +127,14 @@ function LoginPage({ onLogin }: { onLogin: () => void }) {
 }
 
 function Dashboard({ onLogout }: { onLogout: () => void }) {
-  const { inscriptions, togglePayment } = useInscriptionStore();
+  const { inscriptions, togglePayment, config, updatePixKey } = useInscriptionStore();
   const [filter, setFilter] = useState<"all" | "paid" | "pending">("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const { toast } = useToast();
   
+  // Settings State
+  const [pixKeyInput, setPixKeyInput] = useState(config.pixKey);
+
   const stats = {
     total: inscriptions.length,
     paid: inscriptions.filter(i => i.pagamentoConfirmado).length,
@@ -148,6 +154,14 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
     return matchesFilter && matchesSearch;
   });
 
+  const handleSavePix = () => {
+    updatePixKey(pixKeyInput);
+    toast({
+      title: "Configuração Salva",
+      description: "A chave PIX foi atualizada com sucesso.",
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
@@ -165,132 +179,175 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
       </header>
 
       <main className="container mx-auto px-4 py-8 space-y-8">
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="glass-panel border-primary/20">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium uppercase tracking-wider text-muted-foreground">Total Inscritos</CardTitle>
-              <Users className="h-4 w-4 text-primary" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-4xl font-display font-bold text-white">{stats.total}</div>
-            </CardContent>
-          </Card>
-          <Card className="glass-panel border-green-500/20">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium uppercase tracking-wider text-muted-foreground">Confirmados</CardTitle>
-              <CheckCircle className="h-4 w-4 text-green-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-4xl font-display font-bold text-green-500">{stats.paid}</div>
-            </CardContent>
-          </Card>
-          <Card className="glass-panel border-amber-500/20">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium uppercase tracking-wider text-muted-foreground">Pendentes</CardTitle>
-              <Clock className="h-4 w-4 text-amber-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-4xl font-display font-bold text-amber-500">{stats.pending}</div>
-            </CardContent>
-          </Card>
-        </div>
+        <Tabs defaultValue="inscriptions" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 max-w-[400px] mb-8">
+            <TabsTrigger value="inscriptions">Inscrições</TabsTrigger>
+            <TabsTrigger value="settings">Configurações</TabsTrigger>
+          </TabsList>
 
-        {/* Filters & Actions */}
-        <div className="flex flex-col md:flex-row justify-between gap-4 items-center bg-card/50 p-4 rounded-xl border border-border/40">
-          <div className="flex gap-2 w-full md:w-auto">
-            <Button 
-              variant={filter === "all" ? "default" : "outline"}
-              onClick={() => setFilter("all")}
-              className="flex-1"
-            >
-              Todos
-            </Button>
-            <Button 
-              variant={filter === "paid" ? "default" : "outline"}
-              onClick={() => setFilter("paid")}
-              className={filter === "paid" ? "bg-green-600 hover:bg-green-700" : "text-green-500 border-green-500/30 hover:bg-green-500/10"}
-            >
-              Pagos
-            </Button>
-            <Button 
-              variant={filter === "pending" ? "default" : "outline"}
-              onClick={() => setFilter("pending")}
-              className={filter === "pending" ? "bg-amber-600 hover:bg-amber-700" : "text-amber-500 border-amber-500/30 hover:bg-amber-500/10"}
-            >
-              Pendentes
-            </Button>
-          </div>
-          <div className="relative w-full md:w-72">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input 
-              placeholder="Buscar por nome ou telefone..." 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 bg-background/50 border-primary/20"
-            />
-          </div>
-        </div>
+          <TabsContent value="inscriptions" className="space-y-8">
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card className="glass-panel border-primary/20">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium uppercase tracking-wider text-muted-foreground">Total Inscritos</CardTitle>
+                  <Users className="h-4 w-4 text-primary" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-4xl font-display font-bold text-white">{stats.total}</div>
+                </CardContent>
+              </Card>
+              <Card className="glass-panel border-green-500/20">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium uppercase tracking-wider text-muted-foreground">Confirmados</CardTitle>
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-4xl font-display font-bold text-green-500">{stats.paid}</div>
+                </CardContent>
+              </Card>
+              <Card className="glass-panel border-amber-500/20">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium uppercase tracking-wider text-muted-foreground">Pendentes</CardTitle>
+                  <Clock className="h-4 w-4 text-amber-500" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-4xl font-display font-bold text-amber-500">{stats.pending}</div>
+                </CardContent>
+              </Card>
+            </div>
 
-        {/* Table */}
-        <div className="glass-panel rounded-xl overflow-hidden">
-          <Table>
-            <TableHeader className="bg-muted/30">
-              <TableRow className="hover:bg-transparent border-primary/10">
-                <TableHead className="text-primary font-bold uppercase text-xs">Nome</TableHead>
-                <TableHead className="text-primary font-bold uppercase text-xs">Contato</TableHead>
-                <TableHead className="text-primary font-bold uppercase text-xs">Camisa</TableHead>
-                <TableHead className="text-primary font-bold uppercase text-xs">Data</TableHead>
-                <TableHead className="text-primary font-bold uppercase text-xs">Status</TableHead>
-                <TableHead className="text-right text-primary font-bold uppercase text-xs">Ação</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredInscriptions.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
-                    Nenhuma inscrição encontrada
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredInscriptions.map((ins) => (
-                  <TableRow key={ins.id} className="hover:bg-primary/5 border-primary/10 transition-colors">
-                    <TableCell className="font-medium text-white">{ins.nome}</TableCell>
-                    <TableCell>{ins.telefone}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="border-primary/30 text-primary">{ins.tamanho}</Badge>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground text-sm">
-                      {format(new Date(ins.dataInscricao), "dd/MM/yyyy HH:mm", { locale: ptBR })}
-                    </TableCell>
-                    <TableCell>
-                      <Badge 
-                        className={
-                          ins.pagamentoConfirmado 
-                            ? "bg-green-500/20 text-green-500 hover:bg-green-500/30 border-green-500/50" 
-                            : "bg-amber-500/20 text-amber-500 hover:bg-amber-500/30 border-amber-500/50"
-                        }
-                      >
-                        {ins.pagamentoConfirmado ? "CONFIRMADO" : "PENDENTE"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => togglePayment(ins.id)}
-                        className="hover:bg-primary/10 hover:text-primary"
-                        title="Alternar Status de Pagamento"
-                      >
-                        <RefreshCw className="w-4 h-4" />
-                      </Button>
-                    </TableCell>
+            {/* Filters & Actions */}
+            <div className="flex flex-col md:flex-row justify-between gap-4 items-center bg-card/50 p-4 rounded-xl border border-border/40">
+              <div className="flex gap-2 w-full md:w-auto">
+                <Button 
+                  variant={filter === "all" ? "default" : "outline"}
+                  onClick={() => setFilter("all")}
+                  className="flex-1"
+                >
+                  Todos
+                </Button>
+                <Button 
+                  variant={filter === "paid" ? "default" : "outline"}
+                  onClick={() => setFilter("paid")}
+                  className={filter === "paid" ? "bg-green-600 hover:bg-green-700" : "text-green-500 border-green-500/30 hover:bg-green-500/10"}
+                >
+                  Pagos
+                </Button>
+                <Button 
+                  variant={filter === "pending" ? "default" : "outline"}
+                  onClick={() => setFilter("pending")}
+                  className={filter === "pending" ? "bg-amber-600 hover:bg-amber-700" : "text-amber-500 border-amber-500/30 hover:bg-amber-500/10"}
+                >
+                  Pendentes
+                </Button>
+              </div>
+              <div className="relative w-full md:w-72">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input 
+                  placeholder="Buscar por nome ou telefone..." 
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9 bg-background/50 border-primary/20"
+                />
+              </div>
+            </div>
+
+            {/* Table */}
+            <div className="glass-panel rounded-xl overflow-hidden">
+              <Table>
+                <TableHeader className="bg-muted/30">
+                  <TableRow className="hover:bg-transparent border-primary/10">
+                    <TableHead className="text-primary font-bold uppercase text-xs">Nome</TableHead>
+                    <TableHead className="text-primary font-bold uppercase text-xs">Contato</TableHead>
+                    <TableHead className="text-primary font-bold uppercase text-xs">Camisa</TableHead>
+                    <TableHead className="text-primary font-bold uppercase text-xs">Data</TableHead>
+                    <TableHead className="text-primary font-bold uppercase text-xs">Status</TableHead>
+                    <TableHead className="text-right text-primary font-bold uppercase text-xs">Ação</TableHead>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
+                </TableHeader>
+                <TableBody>
+                  {filteredInscriptions.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
+                        Nenhuma inscrição encontrada
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredInscriptions.map((ins) => (
+                      <TableRow key={ins.id} className="hover:bg-primary/5 border-primary/10 transition-colors">
+                        <TableCell className="font-medium text-white">{ins.nome}</TableCell>
+                        <TableCell>{ins.telefone}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="border-primary/30 text-primary">{ins.tamanho}</Badge>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground text-sm">
+                          {format(new Date(ins.dataInscricao), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                        </TableCell>
+                        <TableCell>
+                          <Badge 
+                            className={
+                              ins.pagamentoConfirmado 
+                                ? "bg-green-500/20 text-green-500 hover:bg-green-500/30 border-green-500/50" 
+                                : "bg-amber-500/20 text-amber-500 hover:bg-amber-500/30 border-amber-500/50"
+                            }
+                          >
+                            {ins.pagamentoConfirmado ? "CONFIRMADO" : "PENDENTE"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => togglePayment(ins.id)}
+                            className="hover:bg-primary/10 hover:text-primary"
+                            title="Alternar Status de Pagamento"
+                          >
+                            <RefreshCw className="w-4 h-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="settings">
+            <div className="grid gap-6 max-w-2xl mx-auto">
+               <Card className="glass-panel border-primary/20">
+                 <CardHeader>
+                   <CardTitle className="flex items-center gap-2">
+                     <QrCode className="text-primary" />
+                     Configuração de Pagamento (PIX)
+                   </CardTitle>
+                   <CardDescription>
+                     Configure a chave PIX ou código Copia e Cola que será exibido para os participantes no momento da inscrição.
+                   </CardDescription>
+                 </CardHeader>
+                 <CardContent className="space-y-4">
+                   <div className="space-y-2">
+                     <Label>Chave Pix / Código Copia e Cola</Label>
+                     <Input 
+                        value={pixKeyInput}
+                        onChange={(e) => setPixKeyInput(e.target.value)}
+                        className="font-mono text-sm bg-background/50 border-primary/20"
+                        placeholder="Insira aqui sua chave Pix ou código QR Code em texto..."
+                     />
+                     <p className="text-xs text-muted-foreground">
+                       Dica: Use um código "Copia e Cola" completo para gerar o QR Code corretamente.
+                     </p>
+                   </div>
+                   <Button onClick={handleSavePix} className="w-full bg-primary text-background hover:bg-primary/90 font-bold">
+                     <Save className="w-4 h-4 mr-2" />
+                     Salvar Configuração
+                   </Button>
+                 </CardContent>
+               </Card>
+            </div>
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
