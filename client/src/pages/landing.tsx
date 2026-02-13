@@ -18,6 +18,9 @@ import { useToast } from "@/hooks/use-toast";
 import { MapPin, Shirt, CreditCard, QrCode, ArrowRight, ArrowLeft, Check, Copy, Loader2, Lock, Users } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { type InsertInscription, type Inscription } from "@shared/schema";
 
 // Schema for Step 1
 const personalDataSchema = z.object({
@@ -42,12 +45,19 @@ import logoHappyRun from '@assets/logo_happy_run_1771010367077.png';
 import logoHumani from '@assets/Logo_Humani_Branco_1770990681867.png';
 
 export default function LandingPage() {
-  const { addInscription, config } = useInscriptionStore();
+  const queryClient = useQueryClient();
+  const { config } = useInscriptionStore();
   const { toast } = useToast();
   
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [personalData, setPersonalData] = useState<PersonalData | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
+
+  const addInscriptionMutation = useMutation({
+    mutationFn: async (data: InsertInscription) => {
+      const res = await apiRequest("POST", "/api/inscriptions", data);
+      return res.json();
+    }
+  });
 
   // Form 1: Personal Data
   const formPersonal = useForm<PersonalData>({
@@ -83,37 +93,28 @@ export default function LandingPage() {
   const onPaymentSubmit = (paymentData: PaymentData) => {
     if (!personalData) return;
 
-    setIsProcessing(true);
-
-    // Simulate Payment Processing
-    setTimeout(() => {
-      addInscription({
-        nome: personalData.nome,
-        telefone: personalData.telefone,
-        tamanho: personalData.tamanho,
-        pagamentoConfirmado: false 
-      });
-      
-      setIsProcessing(false);
-      setStep(3);
-
-      if (paymentData.paymentMethod === "credit_card") {
-        const message = encodeURIComponent(`Olá! Acabei de realizar minha pré-inscrição para a Happy Run e vim realizar o pagamento via cartão.`);
-        const waUrl = `https://api.whatsapp.com/send?phone=5515991232959&text=${message}`;
-        
-        const link = document.createElement('a');
-        link.href = waUrl;
-        link.target = '_blank';
-        link.rel = 'noopener noreferrer';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        setTimeout(() => {
-          window.location.assign(waUrl);
-        }, 500);
+    addInscriptionMutation.mutate({
+      nome: personalData.nome,
+      telefone: personalData.telefone,
+      tamanho: personalData.tamanho,
+      pagamentoConfirmado: false
+    }, {
+      onSuccess: () => {
+        setStep(3);
+        if (paymentData.paymentMethod === "credit_card") {
+          const message = encodeURIComponent(`Olá! Acabei de realizar minha pré-inscrição para a Happy Run e vim realizar o pagamento via cartão.`);
+          const waUrl = `https://api.whatsapp.com/send?phone=5515991232959&text=${message}`;
+          window.open(waUrl, '_blank');
+        }
+      },
+      onError: () => {
+        toast({
+          title: "Erro",
+          description: "Não foi possível realizar a inscrição.",
+          variant: "destructive"
+        });
       }
-    }, 2000);
+    });
   };
 
   // Format phone number
@@ -426,16 +427,16 @@ export default function LandingPage() {
                           variant="outline" 
                           onClick={() => setStep(1)}
                           className="flex-1 h-14 border-primary/20 hover:bg-primary/10 text-primary"
-                          disabled={isProcessing}
+                          disabled={addInscriptionMutation.isPending}
                         >
                           <ArrowLeft className="mr-2 w-5 h-5" /> VOLTAR
                         </Button>
                         <Button 
                           type="submit" 
                           className="flex-[2] h-14 text-lg font-display tracking-widest bg-gradient-to-r from-primary to-secondary hover:brightness-110 transition-all shadow-lg shadow-primary/20 text-background rounded-xl"
-                          disabled={isProcessing}
+                          disabled={addInscriptionMutation.isPending}
                         >
-                          {isProcessing ? (
+                          {addInscriptionMutation.isPending ? (
                             <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> PROCESSANDO</>
                           ) : (
                             "PAGAR E FINALIZAR"

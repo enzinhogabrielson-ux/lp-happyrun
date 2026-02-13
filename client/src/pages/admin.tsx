@@ -1,139 +1,92 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useInscriptionStore } from "@/lib/storage";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+import { useToast } from "@/hooks/use-toast";
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
-import { motion, AnimatePresence } from "framer-motion";
-import { Lock, LogOut, RefreshCw, Search, Users, CheckCircle, Clock, Settings, Save, QrCode } from "lucide-react";
+import { CheckCircle2, XCircle, Trash2, Settings, Users, LogOut, RefreshCcw, Search, RefreshCw } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { type Inscription } from "@shared/schema";
+import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 
 export default function AdminPage() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const queryClient = useQueryClient();
+  const { config, updatePixKey } = useInscriptionStore();
   
-  // Check session storage on mount
-  useEffect(() => {
-    const auth = sessionStorage.getItem("admin_auth");
-    if (auth === "true") setIsAuthenticated(true);
-  }, []);
+  const { data: inscriptions = [], isLoading } = useQuery<Inscription[]>({
+    queryKey: ["/api/inscriptions"]
+  });
 
-  const handleLogin = () => {
-    sessionStorage.setItem("admin_auth", "true");
-    setIsAuthenticated(true);
-  };
+  const togglePaymentMutation = useMutation({
+    mutationFn: async ({ id, confirmed }: { id: number, confirmed: boolean }) => {
+      await apiRequest("PATCH", `/api/inscriptions/${id}/payment`, { confirmed });
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/api/inscriptions"] })
+  });
 
-  const handleLogout = () => {
-    sessionStorage.removeItem("admin_auth");
-    setIsAuthenticated(false);
-  };
+  const removeInscriptionMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await apiRequest("DELETE", `/api/inscriptions/${id}`);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/api/inscriptions"] })
+  });
 
-  if (!isAuthenticated) {
-    return <LoginPage onLogin={handleLogin} />;
-  }
+  const clearInscriptionsMutation = useMutation({
+    mutationFn: async () => {
+      await apiRequest("POST", "/api/inscriptions/clear");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/inscriptions"] });
+      toast({
+        title: "Sucesso",
+        description: "Painel de inscrições zerado.",
+      });
+    }
+  });
 
-  return <Dashboard onLogout={handleLogout} />;
-}
-
-function LoginPage({ onLogin }: { onLogin: () => void }) {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(false);
+  const [pixKey, setPixKey] = useState(config.pixKey);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filter, setFilter] = useState<"all" | "paid" | "pending">("all");
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (username === "admin" && password === "admin") {
-      onLogin();
+      setIsLoggedIn(true);
     } else {
-      setError(true);
       toast({
+        title: "Erro de login",
+        description: "Usuário ou senha inválidos",
         variant: "destructive",
-        title: "Acesso Negado",
-        description: "Usuário ou senha incorretos.",
       });
-      setTimeout(() => setError(false), 500);
     }
   };
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden">
-      {/* Background Pulse */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-[20%] -right-[20%] w-[800px] h-[800px] bg-primary/5 rounded-full blur-[100px] animate-pulse" />
-      </div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md p-8"
-      >
-        <motion.div
-          animate={error ? { x: [-10, 10, -10, 10, 0] } : {}}
-          transition={{ duration: 0.4 }}
-          className="glass-panel p-8 rounded-2xl"
-        >
-          <div className="text-center mb-8">
-            <div className="text-primary font-bold tracking-widest uppercase mb-2 text-sm">Painel Administrativo</div>
-            <h1 className="text-3xl font-display text-white">Login Seguro</h1>
-            <p className="text-muted-foreground text-sm mt-2">Entre com suas credenciais</p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-primary uppercase tracking-wider">Usuário</label>
-              <Input
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="bg-background/50 border-primary/20 h-12"
-                placeholder="admin"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-primary uppercase tracking-wider">Senha</label>
-              <Input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="bg-background/50 border-primary/20 h-12"
-                placeholder="••••••••"
-              />
-            </div>
-            <Button className="w-full h-12 mt-4 bg-primary hover:bg-primary/90 text-background font-bold tracking-wider uppercase">
-              <Lock className="w-4 h-4 mr-2" />
-              Entrar
-            </Button>
-          </form>
-        </motion.div>
-      </motion.div>
-    </div>
-  );
-}
-
-function Dashboard({ onLogout }: { onLogout: () => void }) {
-  const { inscriptions, togglePayment, config, updatePixKey } = useInscriptionStore();
-  const [filter, setFilter] = useState<"all" | "paid" | "pending">("all");
-  const [searchTerm, setSearchTerm] = useState("");
-  const { toast } = useToast();
-  
-  // Settings State
-  const [pixKeyInput, setPixKeyInput] = useState(config.pixKey);
-
-  const stats = {
-    total: inscriptions.length,
-    paid: inscriptions.filter(i => i.pagamentoConfirmado).length,
-    pending: inscriptions.filter(i => !i.pagamentoConfirmado).length
+  const handleUpdatePix = (e: React.FormEvent) => {
+    e.preventDefault();
+    updatePixKey(pixKey);
+    toast({
+      title: "Sucesso",
+      description: "Chave PIX atualizada",
+    });
   };
 
   const filteredInscriptions = inscriptions.filter(ins => {
@@ -149,31 +102,75 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
     return matchesFilter && matchesSearch;
   });
 
-  const handleSavePix = () => {
-    updatePixKey(pixKeyInput);
-    toast({
-      title: "Configuração Salva",
-      description: "A chave PIX foi atualizada com sucesso.",
-    });
+  const stats = {
+    total: inscriptions.length,
+    paid: inscriptions.filter(i => i.pagamentoConfirmado).length,
+    pending: inscriptions.filter(i => !i.pagamentoConfirmado).length
   };
 
-  return (
-    <div className="min-h-screen bg-background text-foreground">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/40">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-background font-bold">H</div>
-             <span className="font-display text-xl tracking-wide">Painel Admin</span>
-          </div>
-          <Button variant="ghost" onClick={onLogout} className="text-destructive hover:text-destructive hover:bg-destructive/10">
-            <LogOut className="w-4 h-4 mr-2" />
-            Sair
-          </Button>
-        </div>
-      </header>
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="w-full max-w-md bg-black/40 border-primary/20 backdrop-blur-md">
+          <CardHeader className="text-center">
+            <CardTitle className="text-3xl font-display text-primary">Painel Admin</CardTitle>
+            <CardDescription>Acesse para gerenciar as inscrições</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-widest text-primary">Usuário</label>
+                <Input 
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="bg-background/50 border-primary/20"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-widest text-primary">Senha</label>
+                <Input 
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="bg-background/50 border-primary/20"
+                />
+              </div>
+              <Button type="submit" className="w-full h-12 bg-primary text-background font-bold tracking-widest hover:brightness-110">
+                ENTRAR
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
-      <main className="container mx-auto px-4 py-8 space-y-8">
+  return (
+    <div className="min-h-screen bg-background p-4 md:p-8">
+      <div className="max-w-7xl mx-auto space-y-8">
+        <header className="flex flex-col md:flex-row justify-between items-center gap-4">
+          <div>
+            <h1 className="text-4xl font-display text-primary">Gestão Happy Run</h1>
+            <p className="text-muted-foreground">Bem-vindo ao centro de controle</p>
+          </div>
+          <div className="flex gap-4">
+            <Button 
+              variant="destructive" 
+              className="font-bold tracking-widest h-12"
+              onClick={() => {
+                if (window.confirm("Deseja realmente ZERAR todas as inscrições? Esta ação não pode ser desfeita.")) {
+                  clearInscriptionsMutation.mutate();
+                }
+              }}
+            >
+              <RefreshCcw className="mr-2 w-4 h-4" /> ZERAR PAINEL
+            </Button>
+            <Button variant="outline" className="border-primary/20 text-primary h-12" onClick={() => setIsLoggedIn(false)}>
+              <LogOut className="mr-2 w-4 h-4" /> SAIR
+            </Button>
+          </div>
+        </header>
+
         <Tabs defaultValue="inscriptions" className="w-full">
           <TabsList className="grid w-full grid-cols-2 max-w-[400px] mb-8">
             <TabsTrigger value="inscriptions">Inscrições</TabsTrigger>
@@ -181,169 +178,144 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
           </TabsList>
 
           <TabsContent value="inscriptions" className="space-y-8">
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card className="glass-panel border-primary/20">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium uppercase tracking-wider text-muted-foreground">Total Inscritos</CardTitle>
-                  <Users className="h-4 w-4 text-primary" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-4xl font-display font-bold text-white">{stats.total}</div>
-                </CardContent>
-              </Card>
-              <Card className="glass-panel border-green-500/20">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium uppercase tracking-wider text-muted-foreground">Confirmados</CardTitle>
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-4xl font-display font-bold text-green-500">{stats.paid}</div>
-                </CardContent>
-              </Card>
-              <Card className="glass-panel border-amber-500/20">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium uppercase tracking-wider text-muted-foreground">Pendentes</CardTitle>
-                  <Clock className="h-4 w-4 text-amber-500" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-4xl font-display font-bold text-amber-500">{stats.pending}</div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Filters & Actions */}
-            <div className="flex flex-col md:flex-row justify-between gap-4 items-center bg-card/50 p-4 rounded-xl border border-border/40">
-              <div className="flex gap-2 w-full md:w-auto">
-                <Button 
-                  variant={filter === "all" ? "default" : "outline"}
-                  onClick={() => setFilter("all")}
-                  className="flex-1"
-                >
-                  Todos
-                </Button>
-                <Button 
-                  variant={filter === "paid" ? "default" : "outline"}
-                  onClick={() => setFilter("paid")}
-                  className={filter === "paid" ? "bg-green-600 hover:bg-green-700" : "text-green-500 border-green-500/30 hover:bg-green-500/10"}
-                >
-                  Pagos
-                </Button>
-                <Button 
-                  variant={filter === "pending" ? "default" : "outline"}
-                  onClick={() => setFilter("pending")}
-                  className={filter === "pending" ? "bg-amber-600 hover:bg-amber-700" : "text-amber-500 border-amber-500/30 hover:bg-amber-500/10"}
-                >
-                  Pendentes
-                </Button>
+            <div className="grid lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-1 space-y-8">
+                <Card className="bg-black/40 border-primary/20 backdrop-blur-md">
+                  <CardHeader>
+                    <CardTitle className="text-xl flex items-center gap-2">
+                      <Users className="text-primary" /> Estatísticas
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex justify-between items-center p-4 bg-primary/5 rounded-xl border border-primary/10">
+                      <span className="text-muted-foreground">Inscrições Totais</span>
+                      <span className="text-2xl font-display text-primary">{stats.total}</span>
+                    </div>
+                    <div className="flex justify-between items-center p-4 bg-green-500/5 rounded-xl border border-green-500/10">
+                      <span className="text-muted-foreground">Confirmadas</span>
+                      <span className="text-2xl font-display text-green-500">{stats.paid}</span>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
-              <div className="relative w-full md:w-72">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input 
-                  placeholder="Buscar por nome ou telefone..." 
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9 bg-background/50 border-primary/20"
-                />
-              </div>
-            </div>
 
-            {/* Table */}
-            <div className="glass-panel rounded-xl overflow-hidden">
-              <Table>
-                <TableHeader className="bg-muted/30">
-                  <TableRow className="hover:bg-transparent border-primary/10">
-                    <TableHead className="text-primary font-bold uppercase text-xs">Nome</TableHead>
-                    <TableHead className="text-primary font-bold uppercase text-xs">Contato</TableHead>
-                    <TableHead className="text-primary font-bold uppercase text-xs">Camisa</TableHead>
-                    <TableHead className="text-primary font-bold uppercase text-xs">Data</TableHead>
-                    <TableHead className="text-primary font-bold uppercase text-xs">Status</TableHead>
-                    <TableHead className="text-right text-primary font-bold uppercase text-xs">Ação</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredInscriptions.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
-                        Nenhuma inscrição encontrada
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    filteredInscriptions.map((ins) => (
-                      <TableRow key={ins.id} className="hover:bg-primary/5 border-primary/10 transition-colors">
-                        <TableCell className="font-medium text-white">{ins.nome}</TableCell>
-                        <TableCell>{ins.telefone}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="border-primary/30 text-primary">{ins.tamanho}</Badge>
-                        </TableCell>
-                        <TableCell className="text-muted-foreground text-sm">
-                          {format(new Date(ins.dataInscricao), "dd/MM/yyyy HH:mm", { locale: ptBR })}
-                        </TableCell>
-                        <TableCell>
-                          <Badge 
-                            className={
-                              ins.pagamentoConfirmado 
-                                ? "bg-green-500/20 text-green-500 hover:bg-green-500/30 border-green-500/50" 
-                                : "bg-amber-500/20 text-amber-500 hover:bg-amber-500/30 border-amber-500/50"
-                            }
-                          >
-                            {ins.pagamentoConfirmado ? "CONFIRMADO" : "PENDENTE"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => togglePayment(ins.id)}
-                            className="hover:bg-primary/10 hover:text-primary"
-                            title="Alternar Status de Pagamento"
-                          >
-                            <RefreshCw className="w-4 h-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
+              <Card className="lg:col-span-2 bg-black/40 border-primary/20 backdrop-blur-md overflow-hidden">
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle className="text-xl">Lista de Participantes</CardTitle>
+                  <div className="relative w-64">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input 
+                      placeholder="Buscar..." 
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-9 bg-background/50 border-primary/20"
+                    />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="rounded-xl border border-primary/10 overflow-hidden">
+                    <Table>
+                      <TableHeader className="bg-primary/5">
+                        <TableRow className="border-primary/10 hover:bg-transparent">
+                          <TableHead className="text-primary font-bold">NOME</TableHead>
+                          <TableHead className="text-primary font-bold">TAMANHO</TableHead>
+                          <TableHead className="text-primary font-bold">STATUS</TableHead>
+                          <TableHead className="text-right text-primary font-bold">AÇÕES</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredInscriptions.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={4} className="text-center py-12 text-muted-foreground">
+                              Nenhuma inscrição encontrada.
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          filteredInscriptions.map((ins) => (
+                            <TableRow key={ins.id} className="border-primary/5 hover:bg-primary/5 transition-colors">
+                              <TableCell className="font-medium">
+                                <div>{ins.nome}</div>
+                                <div className="text-xs text-muted-foreground font-mono">{ins.telefone}</div>
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant="outline" className="border-primary/30 text-primary uppercase">{ins.tamanho}</Badge>
+                              </TableCell>
+                              <TableCell>
+                                {ins.pagamentoConfirmado ? (
+                                  <Badge className="bg-green-500/20 text-green-500 border-green-500/30 gap-1 px-2">
+                                    <CheckCircle2 size={12} /> PAGO
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="outline" className="text-amber-500 border-amber-500/30 gap-1 px-2">
+                                    <XCircle size={12} /> PENDENTE
+                                  </Badge>
+                                )}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <div className="flex justify-end gap-2">
+                                  <Button 
+                                    size="sm" 
+                                    variant="ghost" 
+                                    className={cn(
+                                      "h-8 px-2 transition-all",
+                                      ins.pagamentoConfirmado ? "text-amber-500" : "text-green-500"
+                                    )}
+                                    onClick={() => togglePaymentMutation.mutate({ id: ins.id, confirmed: !ins.pagamentoConfirmado })}
+                                  >
+                                    <RefreshCw className="w-4 h-4 mr-1" />
+                                    {ins.pagamentoConfirmado ? "Pendente" : "Pago"}
+                                  </Button>
+                                  <Button 
+                                    size="sm" 
+                                    variant="ghost" 
+                                    className="h-8 px-2 text-destructive"
+                                    onClick={() => {
+                                      if (window.confirm("Excluir esta inscrição?")) {
+                                        removeInscriptionMutation.mutate(ins.id);
+                                      }
+                                    }}
+                                  >
+                                    <Trash2 size={16} />
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
 
           <TabsContent value="settings">
-            <div className="grid gap-6 max-w-2xl mx-auto">
-               <Card className="glass-panel border-primary/20">
-                 <CardHeader>
-                   <CardTitle className="flex items-center gap-2">
-                     <QrCode className="text-primary" />
-                     Configuração de Pagamento (PIX)
-                   </CardTitle>
-                   <CardDescription>
-                     Configure a chave PIX ou código Copia e Cola que será exibido para os participantes no momento da inscrição.
-                   </CardDescription>
-                 </CardHeader>
-                 <CardContent className="space-y-4">
-                   <div className="space-y-2">
-                     <Label>Chave Pix / Código Copia e Cola</Label>
-                     <Input 
-                        value={pixKeyInput}
-                        onChange={(e) => setPixKeyInput(e.target.value)}
-                        className="font-mono text-sm bg-background/50 border-primary/20"
-                        placeholder="Insira aqui sua chave Pix ou código QR Code em texto..."
-                     />
-                     <p className="text-xs text-muted-foreground">
-                       Dica: Use um código "Copia e Cola" completo para gerar o QR Code corretamente.
-                     </p>
-                   </div>
-                   <Button onClick={handleSavePix} className="w-full bg-primary text-background hover:bg-primary/90 font-bold">
-                     <Save className="w-4 h-4 mr-2" />
-                     Salvar Configuração
-                   </Button>
-                 </CardContent>
-               </Card>
-            </div>
+            <Card className="max-w-2xl mx-auto bg-black/40 border-primary/20 backdrop-blur-md">
+              <CardHeader>
+                <CardTitle className="text-xl flex items-center gap-2">
+                  <Settings className="text-primary" /> Configuração PIX
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleUpdatePix} className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Chave PIX Atual</label>
+                    <Input 
+                      value={pixKey}
+                      onChange={(e) => setPixKey(e.target.value)}
+                      className="bg-background/50 border-primary/20 font-mono text-xs"
+                    />
+                  </div>
+                  <Button type="submit" className="w-full bg-primary/20 text-primary border border-primary/30 hover:bg-primary/30">
+                    ATUALIZAR CHAVE
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
-      </main>
+      </div>
     </div>
   );
 }
