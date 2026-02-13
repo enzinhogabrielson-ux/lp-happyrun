@@ -86,21 +86,23 @@ export default function LandingPage() {
 
     // Simulate Payment Processing
     setTimeout(() => {
+      // In mockup mode, we'll still record the inscription but mark payment as false
+      // unless it's a real backend where we could verify.
+      // For now, let's keep the flow but adjust the success message context.
       addInscription({
         nome: personalData.nome,
         telefone: personalData.telefone,
         tamanho: personalData.tamanho,
-        pagamentoConfirmado: true
+        pagamentoConfirmado: false // Mark as pending initially
       });
       
       setIsProcessing(false);
       setStep(3);
 
       if (paymentData.paymentMethod === "credit_card") {
-        const message = encodeURIComponent(`Olá! Acabei de realizar minha inscrição para a Happy Run pelo cartão e gostaria de confirmar os próximos passos.`);
+        const message = encodeURIComponent(`Olá! Acabei de realizar minha pré-inscrição para a Happy Run pelo cartão e gostaria de confirmar o pagamento.`);
         const waUrl = `https://api.whatsapp.com/send?phone=5515991232959&text=${message}`;
         
-        // Comprehensive redirection attempt
         const link = document.createElement('a');
         link.href = waUrl;
         link.target = '_blank';
@@ -109,7 +111,6 @@ export default function LandingPage() {
         link.click();
         document.body.removeChild(link);
         
-        // Fallback for some environments
         setTimeout(() => {
           window.location.assign(waUrl);
         }, 500);
@@ -461,9 +462,11 @@ export default function LandingPage() {
                   </motion.div>
                 </div>
                 <div>
-                  <h3 className="text-4xl font-display text-primary mb-2">Sucesso!</h3>
-                  <p className="text-lg text-white font-medium">Inscrição e Pagamento Confirmados</p>
-                  <p className="text-muted-foreground mt-2 text-sm">Enviamos os detalhes para o seu WhatsApp.</p>
+                  <h3 className="text-4xl font-display text-primary mb-2">Quase lá!</h3>
+                  <p className="text-lg text-white font-medium">Sua pré-inscrição foi recebida.</p>
+                  <p className="text-muted-foreground mt-2 text-sm">
+                    Sua vaga será garantida após a confirmação do pagamento pela nossa equipe.
+                  </p>
                 </div>
                 
                 <div className="bg-primary/5 p-4 rounded-xl border border-primary/10 text-left space-y-2 mt-6">
