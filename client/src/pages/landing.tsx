@@ -27,6 +27,9 @@ const personalDataSchema = z.object({
   nome: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
   telefone: z.string().min(10, "Telefone inválido"),
   tamanho: z.string().min(1, "Selecione um tamanho"),
+  trabalhaBandeiras: z.boolean().default(false),
+  empresaBandeiras: z.string().optional(),
+  presencaSpinning: z.boolean().default(false),
 });
 
 // Schema for Step 2 (Payment)
@@ -66,6 +69,9 @@ export default function LandingPage() {
       nome: "",
       telefone: "",
       tamanho: "",
+      trabalhaBandeiras: false,
+      empresaBandeiras: "",
+      presencaSpinning: false,
     },
   });
 
@@ -97,6 +103,9 @@ export default function LandingPage() {
       nome: personalData.nome,
       telefone: personalData.telefone,
       tamanho: personalData.tamanho,
+      trabalhaBandeiras: personalData.trabalhaBandeiras,
+      empresaBandeiras: personalData.empresaBandeiras,
+      presencaSpinning: personalData.presencaSpinning,
       pagamentoConfirmado: false
     }, {
       onSuccess: () => {
@@ -141,7 +150,16 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-background text-foreground flex flex-col justify-between p-4">
+    <div 
+      className="min-h-screen relative overflow-hidden bg-background text-foreground flex flex-col justify-between p-4"
+      style={{
+        backgroundImage: 'url(/bgheropage-happrun.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
       {/* Background Decor */}
       <div className="fixed inset-0 pointer-events-none">
         <motion.div 
@@ -159,44 +177,52 @@ export default function LandingPage() {
 
       <div className="container max-w-6xl relative z-10 grid lg:grid-cols-2 gap-12 lg:gap-24 items-center flex-grow pt-8 mx-auto">
         {/* Left Column: Hero Text */}
-        <div className="space-y-8 text-center lg:text-left flex flex-col justify-center">
+        <div className="space-y-4 text-center lg:text-left flex flex-col justify-center">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <div className="mb-2 flex justify-center lg:justify-start">
-              <img src={logoHappyRun} alt="Happy Run" className="h-64 md:h-[450px] lg:h-[550px] w-auto object-contain -ml-8 lg:-ml-12" />
+            <div className="mb-2 text-center lg:text-left">
+               <h1 className="text-3xl md:text-4xl lg:text-5xl font-display text-white uppercase leading-none drop-shadow-md">
+                 Venha torcer <br/>
+                 <span className="text-primary">com a gente!</span>
+                 <span className="block text-xl md:text-2xl text-white normal-case italic font-handwriting mt-1 tracking-wide font-light">e correr</span>
+               </h1>
             </div>
-            <p className="text-lg lg:text-xl text-muted-foreground font-light max-w-2xl mx-auto lg:mx-0">
-              Corrida com Happy Hour, aberta ao público. <br/>
-              Homenagem ao dia internacional da mulher.
-            </p>
+
+            <div className="mb-2 flex justify-center lg:justify-start">
+              <img src={logoHappyRun} alt="Happy Run" className="h-64 md:h-[400px] lg:h-[450px] w-auto object-contain -ml-4 lg:-ml-6" />
+            </div>
           </motion.div>
 
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="flex flex-wrap gap-4 justify-center lg:justify-start"
+            className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-stretch"
           >
             <div className="flex items-center gap-3 bg-card/50 px-5 py-3 rounded-xl border border-primary/20 backdrop-blur-sm">
               <div className="p-2 bg-primary/10 rounded-lg text-primary">
                 <MapPin size={24} />
               </div>
               <div className="text-left">
-                <div className="text-xs text-primary font-bold uppercase tracking-wider">Local</div>
-                <div className="text-sm font-semibold">Bandeiras - Votorantim<br/>19 de Março - 19h30</div>
+                <div className="text-xs text-primary font-bold uppercase tracking-wider">Local & Data</div>
+                <div className="text-sm font-semibold mb-1">Bandeiras | Centro Empresarial<br/>19 de Junho - 06h30</div>
+                <div className="text-xs text-muted-foreground leading-tight">
+                  Av. Ireno da Silva Venâncio, 199<br/>
+                  Protestantes, Votorantim
+                </div>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-3 bg-card/50 px-5 py-3 rounded-xl border border-primary/20 backdrop-blur-sm">
               <div className="p-2 bg-primary/10 rounded-lg text-primary">
                 <Shirt size={24} />
               </div>
               <div className="text-left">
                 <div className="text-xs text-primary font-bold uppercase tracking-wider">Valor</div>
-                <div className="text-sm font-semibold">Inscrição R$ 60,00<br/>Happy Hour Incluso</div>
+                <div className="text-sm font-semibold">Inscrição R$ 97,00<br/>Happy Hour Incluso</div>
               </div>
             </div>
           </motion.div>
@@ -258,7 +284,7 @@ export default function LandingPage() {
                           name="telefone"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="text-primary font-bold uppercase text-xs tracking-wider">Telefone</FormLabel>
+                              <FormLabel className="text-primary font-bold uppercase text-xs tracking-wider">WhatsApp</FormLabel>
                               <FormControl>
                                 <Input 
                                   placeholder="(00) 00000-0000" 
@@ -301,11 +327,76 @@ export default function LandingPage() {
                         />
                       </div>
 
+                      <FormField
+                        control={formPersonal.control}
+                        name="trabalhaBandeiras"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border border-primary/20 p-4 bg-background/30">
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                                className="border-primary/50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground mt-1"
+                              />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                              <FormLabel className="text-sm font-medium text-white cursor-pointer">
+                                Trabalha em uma empresa dentro do complexo Bandeiras?
+                              </FormLabel>
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+
+                      {formPersonal.watch("trabalhaBandeiras") && (
+                        <FormField
+                          control={formPersonal.control}
+                          name="empresaBandeiras"
+                          render={({ field }) => (
+                            <FormItem className="animate-in fade-in slide-in-from-top-2 duration-300">
+                              <FormLabel className="text-primary font-bold uppercase text-xs tracking-wider">Se sim, qual?</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  placeholder="Nome da empresa" 
+                                  {...field} 
+                                  className="bg-background/50 border-primary/20 focus-visible:ring-primary/50 h-12 rounded-xl"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      )}
+
+                      <FormField
+                        control={formPersonal.control}
+                        name="presencaSpinning"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-xl border border-primary/20 bg-background/30 p-4 pt-5 backdrop-blur-sm">
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                                className="border-primary/50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground mt-1"
+                              />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                              <FormLabel className="text-sm font-medium text-white cursor-pointer">
+                                Participará do aulão de Spinning as 06h30?
+                              </FormLabel>
+                              <p className="text-xs text-primary font-bold mt-1">
+                                🔥 Somente 50 vagas
+                              </p>
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+
                       <Button 
                         type="submit" 
-                        className="w-full h-14 text-lg font-display tracking-widest bg-primary hover:bg-primary-dark transition-all shadow-lg shadow-primary/20 text-background rounded-xl mt-4"
+                        className="w-full h-14 text-lg font-display tracking-widest bg-primary hover:bg-primary-dark hover:scale-[1.02] hover:-translate-y-1 active:scale-[0.98] transition-all duration-300 shadow-lg shadow-primary/20 hover:shadow-primary/40 text-background rounded-xl mt-4"
                       >
-                        CONTINUAR <ArrowRight className="ml-2 w-5 h-5" />
+                        CONTINUAR <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                       </Button>
                     </form>
                   </Form>

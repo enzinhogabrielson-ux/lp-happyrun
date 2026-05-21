@@ -13,7 +13,7 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, XCircle, Trash2, Settings, Users, LogOut, RefreshCcw, Search, RefreshCw } from "lucide-react";
+import { CheckCircle2, XCircle, Trash2, Settings, Users, LogOut, RefreshCcw, Search, RefreshCw, Download } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { type Inscription } from "@shared/schema";
@@ -89,6 +89,43 @@ export default function AdminPage() {
     });
   };
 
+  const handleExportCSV = () => {
+    if (inscriptions.length === 0) {
+      toast({ title: "Aviso", description: "Nenhuma inscrição para exportar." });
+      return;
+    }
+    
+    // Headers
+    const headers = ["ID", "Nome", "WhatsApp", "Tamanho", "Trabalha no Bandeiras", "Empresa Bandeiras", "Spinning", "Pagamento Confirmado", "Data Inscrição"];
+    
+    // Rows
+    const rows = inscriptions.map(ins => [
+      ins.id,
+      `"${ins.nome}"`, // Wrap in quotes to handle commas in names
+      ins.telefone,
+      ins.tamanho,
+      ins.trabalhaBandeiras ? "Sim" : "Não",
+      ins.empresaBandeiras ? `"${ins.empresaBandeiras}"` : "-",
+      ins.presencaSpinning ? "Sim" : "Não",
+      ins.pagamentoConfirmado ? "Pago" : "Pendente",
+      ins.dataInscricao ? new Date(ins.dataInscricao).toLocaleString('pt-BR') : "-"
+    ]);
+
+    const csvContent = [
+      headers.join(","),
+      ...rows.map(e => e.join(","))
+    ].join("\n");
+
+    const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" }); // uFEFF for UTF-8 BOM so Excel opens it right
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `inscricoes_happyrun_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const filteredInscriptions = inscriptions.filter(ins => {
     const matchesFilter = 
       filter === "all" ? true :
@@ -155,6 +192,13 @@ export default function AdminPage() {
           </div>
           <div className="flex gap-4">
             <Button 
+              variant="outline" 
+              className="border-green-500/50 text-green-500 hover:bg-green-500/10 h-12"
+              onClick={handleExportCSV}
+            >
+              <Download className="mr-2 w-4 h-4" /> EXPORTAR PLANILHA
+            </Button>
+            <Button 
               variant="destructive" 
               className="font-bold tracking-widest h-12"
               onClick={() => {
@@ -219,6 +263,8 @@ export default function AdminPage() {
                         <TableRow className="border-primary/10 hover:bg-transparent">
                           <TableHead className="text-primary font-bold">NOME</TableHead>
                           <TableHead className="text-primary font-bold">TAMANHO</TableHead>
+                          <TableHead className="text-primary font-bold">BANDEIRAS</TableHead>
+                          <TableHead className="text-primary font-bold">SPINNING</TableHead>
                           <TableHead className="text-primary font-bold">STATUS</TableHead>
                           <TableHead className="text-right text-primary font-bold">AÇÕES</TableHead>
                         </TableRow>
@@ -226,7 +272,7 @@ export default function AdminPage() {
                       <TableBody>
                         {filteredInscriptions.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={4} className="text-center py-12 text-muted-foreground">
+                            <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
                               Nenhuma inscrição encontrada.
                             </TableCell>
                           </TableRow>
@@ -239,6 +285,23 @@ export default function AdminPage() {
                               </TableCell>
                               <TableCell>
                                 <Badge variant="outline" className="border-primary/30 text-primary uppercase">{ins.tamanho}</Badge>
+                              </TableCell>
+                              <TableCell>
+                                {ins.trabalhaBandeiras ? (
+                                  <div>
+                                    <Badge className="bg-primary/20 text-primary border-primary/30">SIM</Badge>
+                                    <div className="text-xs text-muted-foreground mt-1">{ins.empresaBandeiras || "-"}</div>
+                                  </div>
+                                ) : (
+                                  <Badge variant="outline" className="text-muted-foreground">NÃO</Badge>
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                {ins.presencaSpinning ? (
+                                  <Badge className="bg-primary/20 text-primary border-primary/30">SIM</Badge>
+                                ) : (
+                                  <Badge variant="outline" className="text-muted-foreground">NÃO</Badge>
+                                )}
                               </TableCell>
                               <TableCell>
                                 {ins.pagamentoConfirmado ? (
