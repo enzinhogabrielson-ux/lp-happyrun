@@ -13,6 +13,7 @@ export const inscriptions = sqliteTable("inscriptions", {
   nome: text("nome").notNull(),
   telefone: text("telefone").notNull(),
   tamanho: text("tamanho").notNull(),
+  corCamisa: text("cor_camisa").notNull().default("Azul"),
   trabalhaBandeiras: integer("trabalha_bandeiras", { mode: 'boolean' }).notNull().default(false),
   empresaBandeiras: text("empresa_bandeiras"),
   presencaSpinning: integer("presenca_spinning", { mode: 'boolean' }).notNull().default(false),

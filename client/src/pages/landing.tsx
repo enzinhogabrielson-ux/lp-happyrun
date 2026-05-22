@@ -16,7 +16,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { MapPin, Shirt, CreditCard, QrCode, ArrowRight, ArrowLeft, Check, Copy, Loader2, Lock, Users } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import confetti from "canvas-confetti";
 import { cn } from "@/lib/utils";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -27,6 +28,7 @@ const personalDataSchema = z.object({
   nome: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
   telefone: z.string().min(10, "Telefone inválido"),
   tamanho: z.string().min(1, "Selecione um tamanho"),
+  corCamisa: z.string().min(1, "Selecione uma cor"),
   trabalhaBandeiras: z.boolean().default(false),
   empresaBandeiras: z.string().optional(),
   presencaSpinning: z.boolean().default(false),
@@ -55,6 +57,40 @@ export default function LandingPage() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [personalData, setPersonalData] = useState<PersonalData | null>(null);
 
+  useEffect(() => {
+    // Apenas no PC (largura >= 1024px)
+    if (window.innerWidth >= 1024) {
+      const duration = 2500;
+      const end = Date.now() + duration;
+
+      const frame = () => {
+        confetti({
+          particleCount: 5,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0 },
+          colors: ['#009c3b', '#ffdf00'] // Verde e Amarelo
+        });
+        confetti({
+          particleCount: 5,
+          angle: 120,
+          spread: 55,
+          origin: { x: 1 },
+          colors: ['#009c3b', '#ffdf00']
+        });
+
+        if (Date.now() < end) {
+          requestAnimationFrame(frame);
+        }
+      };
+      
+      // Delay it slightly so it pops after the page renders
+      setTimeout(() => {
+        frame();
+      }, 300);
+    }
+  }, []);
+
   const addInscriptionMutation = useMutation({
     mutationFn: async (data: InsertInscription) => {
       const res = await apiRequest("POST", "/api/inscriptions", data);
@@ -69,6 +105,7 @@ export default function LandingPage() {
       nome: "",
       telefone: "",
       tamanho: "",
+      corCamisa: "Azul",
       trabalhaBandeiras: false,
       empresaBandeiras: "",
       presencaSpinning: false,
@@ -103,6 +140,7 @@ export default function LandingPage() {
       nome: personalData.nome,
       telefone: personalData.telefone,
       tamanho: personalData.tamanho,
+      corCamisa: personalData.corCamisa,
       trabalhaBandeiras: personalData.trabalhaBandeiras,
       empresaBandeiras: personalData.empresaBandeiras,
       presencaSpinning: personalData.presencaSpinning,
@@ -116,10 +154,11 @@ export default function LandingPage() {
           window.open(waUrl, '_blank');
         }
       },
-      onError: () => {
+      onError: (err: any) => {
+        console.error("Erro ao realizar inscrição:", err);
         toast({
           title: "Erro",
-          description: "Não foi possível realizar a inscrição.",
+          description: err.message || "Não foi possível realizar a inscrição.",
           variant: "destructive"
         });
       }
@@ -183,12 +222,8 @@ export default function LandingPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <div className="mb-2 text-center lg:text-left">
-               <h1 className="text-3xl md:text-4xl lg:text-5xl font-display text-white uppercase leading-none drop-shadow-md">
-                 Venha torcer <br/>
-                 <span className="text-primary">com a gente!</span>
-                 <span className="block text-xl md:text-2xl text-white normal-case italic font-handwriting mt-1 tracking-wide font-light">e correr</span>
-               </h1>
+            <div className="mb-8 text-center lg:text-left flex justify-center lg:justify-start">
+               <img src="/logo-torcer.png" alt="Venha torcer com a gente! e correr" className="h-16 md:h-20 lg:h-24 w-auto object-contain drop-shadow-md lg:ml-4" />
             </div>
 
             <div className="mb-2 flex justify-center lg:justify-start">
@@ -278,28 +313,30 @@ export default function LandingPage() {
                         )}
                       />
 
+                      <FormField
+                        control={formPersonal.control}
+                        name="telefone"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-primary font-bold uppercase text-xs tracking-wider">WhatsApp</FormLabel>
+                            <FormControl>
+                              <Input 
+                                placeholder="(00) 00000-0000" 
+                                {...field} 
+                                onChange={(e) => {
+                                  handlePhoneChange(e);
+                                  field.onChange(e);
+                                }}
+                                className="bg-background/50 border-primary/20 focus-visible:ring-primary/50 h-12 rounded-xl"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
                       <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                          control={formPersonal.control}
-                          name="telefone"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-primary font-bold uppercase text-xs tracking-wider">WhatsApp</FormLabel>
-                              <FormControl>
-                                <Input 
-                                  placeholder="(00) 00000-0000" 
-                                  {...field} 
-                                  onChange={(e) => {
-                                    handlePhoneChange(e);
-                                    field.onChange(e);
-                                  }}
-                                  className="bg-background/50 border-primary/20 focus-visible:ring-primary/50 h-12 rounded-xl"
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+
 
                         <FormField
                           control={formPersonal.control}
@@ -317,6 +354,31 @@ export default function LandingPage() {
                                   {["PP", "P", "M", "G", "GG", "XG"].map((size) => (
                                     <SelectItem key={size} value={size} className="focus:bg-primary/20 focus:text-primary cursor-pointer">
                                       {size}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={formPersonal.control}
+                          name="corCamisa"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-primary font-bold uppercase text-xs tracking-wider">Cor da Camisa</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger className="bg-background/50 border-primary/20 focus:ring-primary/50 h-12 rounded-xl">
+                                    <SelectValue placeholder="Cor" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent className="bg-card border-primary/20">
+                                  {["Azul", "Verde"].map((cor) => (
+                                    <SelectItem key={cor} value={cor} className="focus:bg-primary/20 focus:text-primary cursor-pointer">
+                                      {cor}
                                     </SelectItem>
                                   ))}
                                 </SelectContent>
@@ -468,7 +530,7 @@ export default function LandingPage() {
                           <div className="text-center space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300 py-4">
                              <div className="space-y-2">
                                <p className="text-sm text-muted-foreground uppercase tracking-widest font-bold">Valor da Inscrição</p>
-                               <div className="text-5xl font-display text-white">R$ 60,00</div>
+                               <div className="text-5xl font-display text-white">R$ 97,00</div>
                              </div>
                              
                              <div className="bg-primary/5 p-6 rounded-2xl border border-primary/20 space-y-4">
@@ -524,7 +586,7 @@ export default function LandingPage() {
                         </Button>
                         <Button 
                           type="submit" 
-                          className="flex-[2] h-14 text-lg font-display tracking-widest bg-gradient-to-r from-primary to-secondary hover:brightness-110 transition-all shadow-lg shadow-primary/20 text-background rounded-xl"
+                          className="flex-[2] h-14 text-lg font-display tracking-widest bg-primary hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 shadow-lg shadow-primary/20 text-primary-foreground rounded-xl font-bold"
                           disabled={addInscriptionMutation.isPending}
                         >
                           {addInscriptionMutation.isPending ? (

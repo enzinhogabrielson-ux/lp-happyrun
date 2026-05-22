@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
+import Database from "better-sqlite3";
 
 const app = express();
 const httpServer = createServer(app);
@@ -60,6 +61,29 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  log("Checking database schema...");
+  try {
+    // Use raw SQLite to safely add missing columns (idempotent)
+    const sqliteDb = new Database("sqlite.db");
+    const columns = sqliteDb
+      .prepare("PRAGMA table_info(inscriptions)")
+      .all() as { name: string }[];
+    const columnNames = columns.map((c) => c.name);
+
+    if (!columnNames.includes("cor_camisa")) {
+      sqliteDb.exec("ALTER TABLE inscriptions ADD COLUMN cor_camisa TEXT NOT NULL DEFAULT 'Azul'");
+      log("Added missing column: cor_camisa");
+    }
+    if (!columnNames.includes("presenca_spinning")) {
+      sqliteDb.exec("ALTER TABLE inscriptions ADD COLUMN presenca_spinning INTEGER NOT NULL DEFAULT false");
+      log("Added missing column: presenca_spinning");
+    }
+    sqliteDb.close();
+    log("Database schema check complete!");
+  } catch (err) {
+    console.error("Database schema check failed:", err);
+  }
+
   await registerRoutes(httpServer, app);
 
   app.use((err: any, _req: Request, res: Response, next: NextFunction) => {

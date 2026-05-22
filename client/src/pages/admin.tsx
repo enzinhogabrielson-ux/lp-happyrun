@@ -3,6 +3,8 @@ import { useInscriptionStore } from "@/lib/storage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import * as XLSX from "xlsx";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Table, 
@@ -89,41 +91,45 @@ export default function AdminPage() {
     });
   };
 
-  const handleExportCSV = () => {
+  const handleExportExcel = () => {
     if (inscriptions.length === 0) {
       toast({ title: "Aviso", description: "Nenhuma inscrição para exportar." });
       return;
     }
     
-    // Headers
-    const headers = ["ID", "Nome", "WhatsApp", "Tamanho", "Trabalha no Bandeiras", "Empresa Bandeiras", "Spinning", "Pagamento Confirmado", "Data Inscrição"];
+    const data = inscriptions.map(ins => ({
+      "ID": ins.id,
+      "Nome": ins.nome,
+      "WhatsApp": ins.telefone,
+      "Tamanho": ins.tamanho,
+      "Cor da Camisa": ins.corCamisa,
+      "Trabalha no Bandeiras": ins.trabalhaBandeiras ? "Sim" : "Não",
+      "Empresa Bandeiras": ins.empresaBandeiras || "-",
+      "Spinning": ins.presencaSpinning ? "Sim" : "Não",
+      "Pagamento Confirmado": ins.pagamentoConfirmado ? "Pago" : "Pendente",
+      "Data Inscrição": ins.dataInscricao ? new Date(ins.dataInscricao).toLocaleString('pt-BR') : "-"
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(data);
     
-    // Rows
-    const rows = inscriptions.map(ins => [
-      ins.id,
-      `"${ins.nome}"`, // Wrap in quotes to handle commas in names
-      ins.telefone,
-      ins.tamanho,
-      ins.trabalhaBandeiras ? "Sim" : "Não",
-      ins.empresaBandeiras ? `"${ins.empresaBandeiras}"` : "-",
-      ins.presencaSpinning ? "Sim" : "Não",
-      ins.pagamentoConfirmado ? "Pago" : "Pendente",
-      ins.dataInscricao ? new Date(ins.dataInscricao).toLocaleString('pt-BR') : "-"
-    ]);
+    // Auto-size columns for better readability
+    worksheet["!cols"] = [
+      { wch: 5 },  // ID
+      { wch: 35 }, // Nome
+      { wch: 18 }, // WhatsApp
+      { wch: 10 }, // Tamanho
+      { wch: 15 }, // Cor da Camisa
+      { wch: 22 }, // Trabalha no Bandeiras
+      { wch: 30 }, // Empresa Bandeiras
+      { wch: 10 }, // Spinning
+      { wch: 22 }, // Pagamento Confirmado
+      { wch: 20 }, // Data Inscrição
+    ];
 
-    const csvContent = [
-      headers.join(","),
-      ...rows.map(e => e.join(","))
-    ].join("\n");
-
-    const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" }); // uFEFF for UTF-8 BOM so Excel opens it right
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `inscricoes_happyrun_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Inscricoes");
+    
+    XLSX.writeFile(workbook, `inscricoes_happyrun_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
   const filteredInscriptions = inscriptions.filter(ins => {
@@ -194,7 +200,7 @@ export default function AdminPage() {
             <Button 
               variant="outline" 
               className="border-green-500/50 text-green-500 hover:bg-green-500/10 h-12"
-              onClick={handleExportCSV}
+              onClick={handleExportExcel}
             >
               <Download className="mr-2 w-4 h-4" /> EXPORTAR PLANILHA
             </Button>
@@ -262,7 +268,7 @@ export default function AdminPage() {
                       <TableHeader className="bg-primary/5">
                         <TableRow className="border-primary/10 hover:bg-transparent">
                           <TableHead className="text-primary font-bold">NOME</TableHead>
-                          <TableHead className="text-primary font-bold">TAMANHO</TableHead>
+                          <TableHead className="text-primary font-bold">CAMISA</TableHead>
                           <TableHead className="text-primary font-bold">BANDEIRAS</TableHead>
                           <TableHead className="text-primary font-bold">SPINNING</TableHead>
                           <TableHead className="text-primary font-bold">STATUS</TableHead>
@@ -284,7 +290,10 @@ export default function AdminPage() {
                                 <div className="text-xs text-muted-foreground font-mono">{ins.telefone}</div>
                               </TableCell>
                               <TableCell>
-                                <Badge variant="outline" className="border-primary/30 text-primary uppercase">{ins.tamanho}</Badge>
+                                <div className="flex gap-2">
+                                  <Badge variant="outline" className="border-primary/30 text-primary uppercase">{ins.tamanho}</Badge>
+                                  <Badge variant="outline" className="border-primary/30 text-muted-foreground">{ins.corCamisa}</Badge>
+                                </div>
                               </TableCell>
                               <TableCell>
                                 {ins.trabalhaBandeiras ? (
@@ -304,30 +313,26 @@ export default function AdminPage() {
                                 )}
                               </TableCell>
                               <TableCell>
-                                {ins.pagamentoConfirmado ? (
-                                  <Badge className="bg-green-500/20 text-green-500 border-green-500/30 gap-1 px-2">
-                                    <CheckCircle2 size={12} /> PAGO
-                                  </Badge>
-                                ) : (
-                                  <Badge variant="outline" className="text-amber-500 border-amber-500/30 gap-1 px-2">
-                                    <XCircle size={12} /> PENDENTE
-                                  </Badge>
-                                )}
+                                <div className="flex items-center space-x-2">
+                                  <Switch 
+                                    checked={ins.pagamentoConfirmado}
+                                    onCheckedChange={(checked) => togglePaymentMutation.mutate({ id: ins.id, confirmed: checked })}
+                                    className="data-[state=checked]:bg-green-500"
+                                  />
+                                  {ins.pagamentoConfirmado ? (
+                                    <Badge className="bg-green-500/20 text-green-500 border-green-500/30 gap-1 px-2 cursor-pointer transition-all" onClick={() => togglePaymentMutation.mutate({ id: ins.id, confirmed: false })}>
+                                      <CheckCircle2 size={12} /> PAGO
+                                    </Badge>
+                                  ) : (
+                                    <Badge variant="outline" className="text-amber-500 border-amber-500/30 gap-1 px-2 cursor-pointer transition-all hover:bg-amber-500/10" onClick={() => togglePaymentMutation.mutate({ id: ins.id, confirmed: true })}>
+                                      <XCircle size={12} /> PENDENTE
+                                    </Badge>
+                                  )}
+                                </div>
                               </TableCell>
                               <TableCell className="text-right">
                                 <div className="flex justify-end gap-2">
-                                  <Button 
-                                    size="sm" 
-                                    variant="ghost" 
-                                    className={cn(
-                                      "h-8 px-2 transition-all",
-                                      ins.pagamentoConfirmado ? "text-amber-500" : "text-green-500"
-                                    )}
-                                    onClick={() => togglePaymentMutation.mutate({ id: ins.id, confirmed: !ins.pagamentoConfirmado })}
-                                  >
-                                    <RefreshCw className="w-4 h-4 mr-1" />
-                                    {ins.pagamentoConfirmado ? "Pendente" : "Pago"}
-                                  </Button>
+                                  {/* The old payment toggle button was moved to the Status column for better UX */}
                                   <Button 
                                     size="sm" 
                                     variant="ghost" 
