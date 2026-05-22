@@ -15,15 +15,11 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, XCircle, Trash2, Settings, Users, LogOut, RefreshCcw, Search, RefreshCw, Download } from "lucide-react";
+import { CheckCircle2, XCircle, Trash2, Settings, Users, LogOut, RefreshCcw, Search, Download } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import { type Inscription } from "@shared/schema";
+import { supabase, mapInscription, type Inscription } from "@/lib/supabase";
 import { motion } from "framer-motion";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
 export default function AdminPage() {
@@ -31,29 +27,49 @@ export default function AdminPage() {
   const { config, updatePixKey } = useInscriptionStore();
   
   const { data: inscriptions = [], isLoading } = useQuery<Inscription[]>({
-    queryKey: ["/api/inscriptions"]
+    queryKey: ["inscriptions"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('inscriptions')
+        .select('*')
+        .order('data_inscricao', { ascending: false });
+      if (error) throw new Error(error.message);
+      return (data || []).map(mapInscription);
+    }
   });
 
   const togglePaymentMutation = useMutation({
     mutationFn: async ({ id, confirmed }: { id: number, confirmed: boolean }) => {
-      await apiRequest("PATCH", `/api/inscriptions/${id}/payment`, { confirmed });
+      const { error } = await supabase
+        .from('inscriptions')
+        .update({ pagamento_confirmado: confirmed })
+        .eq('id', id);
+      if (error) throw new Error(error.message);
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/api/inscriptions"] })
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["inscriptions"] })
   });
 
   const removeInscriptionMutation = useMutation({
     mutationFn: async (id: number) => {
-      await apiRequest("DELETE", `/api/inscriptions/${id}`);
+      const { error } = await supabase
+        .from('inscriptions')
+        .delete()
+        .eq('id', id);
+      if (error) throw new Error(error.message);
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/api/inscriptions"] })
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["inscriptions"] })
   });
 
   const clearInscriptionsMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest("POST", "/api/inscriptions/clear");
+      const { error } = await supabase
+        .from('inscriptions')
+        .delete()
+        .gte('id', 0); // deleta tudo
+      if (error) throw new Error(error.message);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/inscriptions"] });
+      queryClient.invalidateQueries({ queryKey: ["inscriptions"] });
       toast({
         title: "Sucesso",
         description: "Painel de inscrições zerado.",
@@ -112,7 +128,6 @@ export default function AdminPage() {
 
     const worksheet = XLSX.utils.json_to_sheet(data);
     
-    // Auto-size columns for better readability
     worksheet["!cols"] = [
       { wch: 5 },  // ID
       { wch: 35 }, // Nome
@@ -245,6 +260,10 @@ export default function AdminPage() {
                       <span className="text-muted-foreground">Confirmadas</span>
                       <span className="text-2xl font-display text-green-500">{stats.paid}</span>
                     </div>
+                    <div className="flex justify-between items-center p-4 bg-amber-500/5 rounded-xl border border-amber-500/10">
+                      <span className="text-muted-foreground">Pendentes</span>
+                      <span className="text-2xl font-display text-amber-500">{stats.pending}</span>
+                    </div>
                   </CardContent>
                 </Card>
               </div>
@@ -263,76 +282,77 @@ export default function AdminPage() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="rounded-xl border border-primary/10 overflow-hidden">
-                    <Table>
-                      <TableHeader className="bg-primary/5">
-                        <TableRow className="border-primary/10 hover:bg-transparent">
-                          <TableHead className="text-primary font-bold">NOME</TableHead>
-                          <TableHead className="text-primary font-bold">CAMISA</TableHead>
-                          <TableHead className="text-primary font-bold">BANDEIRAS</TableHead>
-                          <TableHead className="text-primary font-bold">SPINNING</TableHead>
-                          <TableHead className="text-primary font-bold">STATUS</TableHead>
-                          <TableHead className="text-right text-primary font-bold">AÇÕES</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {filteredInscriptions.length === 0 ? (
-                          <TableRow>
-                            <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
-                              Nenhuma inscrição encontrada.
-                            </TableCell>
+                  {isLoading ? (
+                    <div className="text-center py-12 text-muted-foreground">Carregando...</div>
+                  ) : (
+                    <div className="rounded-xl border border-primary/10 overflow-hidden">
+                      <Table>
+                        <TableHeader className="bg-primary/5">
+                          <TableRow className="border-primary/10 hover:bg-transparent">
+                            <TableHead className="text-primary font-bold">NOME</TableHead>
+                            <TableHead className="text-primary font-bold">CAMISA</TableHead>
+                            <TableHead className="text-primary font-bold">BANDEIRAS</TableHead>
+                            <TableHead className="text-primary font-bold">SPINNING</TableHead>
+                            <TableHead className="text-primary font-bold">STATUS</TableHead>
+                            <TableHead className="text-right text-primary font-bold">AÇÕES</TableHead>
                           </TableRow>
-                        ) : (
-                          filteredInscriptions.map((ins) => (
-                            <TableRow key={ins.id} className="border-primary/5 hover:bg-primary/5 transition-colors">
-                              <TableCell className="font-medium">
-                                <div>{ins.nome}</div>
-                                <div className="text-xs text-muted-foreground font-mono">{ins.telefone}</div>
+                        </TableHeader>
+                        <TableBody>
+                          {filteredInscriptions.length === 0 ? (
+                            <TableRow>
+                              <TableCell colSpan={6} className="text-center py-12 text-muted-foreground">
+                                Nenhuma inscrição encontrada.
                               </TableCell>
-                              <TableCell>
-                                <div className="flex gap-2">
-                                  <Badge variant="outline" className="border-primary/30 text-primary uppercase">{ins.tamanho}</Badge>
-                                  <Badge variant="outline" className="border-primary/30 text-muted-foreground">{ins.corCamisa}</Badge>
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                {ins.trabalhaBandeiras ? (
-                                  <div>
-                                    <Badge className="bg-primary/20 text-primary border-primary/30">SIM</Badge>
-                                    <div className="text-xs text-muted-foreground mt-1">{ins.empresaBandeiras || "-"}</div>
+                            </TableRow>
+                          ) : (
+                            filteredInscriptions.map((ins) => (
+                              <TableRow key={ins.id} className="border-primary/5 hover:bg-primary/5 transition-colors">
+                                <TableCell className="font-medium">
+                                  <div>{ins.nome}</div>
+                                  <div className="text-xs text-muted-foreground font-mono">{ins.telefone}</div>
+                                </TableCell>
+                                <TableCell>
+                                  <div className="flex gap-2">
+                                    <Badge variant="outline" className="border-primary/30 text-primary uppercase">{ins.tamanho}</Badge>
+                                    <Badge variant="outline" className="border-primary/30 text-muted-foreground">{ins.corCamisa}</Badge>
                                   </div>
-                                ) : (
-                                  <Badge variant="outline" className="text-muted-foreground">NÃO</Badge>
-                                )}
-                              </TableCell>
-                              <TableCell>
-                                {ins.presencaSpinning ? (
-                                  <Badge className="bg-primary/20 text-primary border-primary/30">SIM</Badge>
-                                ) : (
-                                  <Badge variant="outline" className="text-muted-foreground">NÃO</Badge>
-                                )}
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex items-center space-x-2">
-                                  <Switch 
-                                    checked={ins.pagamentoConfirmado}
-                                    onCheckedChange={(checked) => togglePaymentMutation.mutate({ id: ins.id, confirmed: checked })}
-                                    className="data-[state=checked]:bg-green-500"
-                                  />
-                                  {ins.pagamentoConfirmado ? (
-                                    <Badge className="bg-green-500/20 text-green-500 border-green-500/30 gap-1 px-2 cursor-pointer transition-all" onClick={() => togglePaymentMutation.mutate({ id: ins.id, confirmed: false })}>
-                                      <CheckCircle2 size={12} /> PAGO
-                                    </Badge>
+                                </TableCell>
+                                <TableCell>
+                                  {ins.trabalhaBandeiras ? (
+                                    <div>
+                                      <Badge className="bg-primary/20 text-primary border-primary/30">SIM</Badge>
+                                      <div className="text-xs text-muted-foreground mt-1">{ins.empresaBandeiras || "-"}</div>
+                                    </div>
                                   ) : (
-                                    <Badge variant="outline" className="text-amber-500 border-amber-500/30 gap-1 px-2 cursor-pointer transition-all hover:bg-amber-500/10" onClick={() => togglePaymentMutation.mutate({ id: ins.id, confirmed: true })}>
-                                      <XCircle size={12} /> PENDENTE
-                                    </Badge>
+                                    <Badge variant="outline" className="text-muted-foreground">NÃO</Badge>
                                   )}
-                                </div>
-                              </TableCell>
-                              <TableCell className="text-right">
-                                <div className="flex justify-end gap-2">
-                                  {/* The old payment toggle button was moved to the Status column for better UX */}
+                                </TableCell>
+                                <TableCell>
+                                  {ins.presencaSpinning ? (
+                                    <Badge className="bg-primary/20 text-primary border-primary/30">SIM</Badge>
+                                  ) : (
+                                    <Badge variant="outline" className="text-muted-foreground">NÃO</Badge>
+                                  )}
+                                </TableCell>
+                                <TableCell>
+                                  <div className="flex items-center space-x-2">
+                                    <Switch 
+                                      checked={ins.pagamentoConfirmado}
+                                      onCheckedChange={(checked) => togglePaymentMutation.mutate({ id: ins.id, confirmed: checked })}
+                                      className="data-[state=checked]:bg-green-500"
+                                    />
+                                    {ins.pagamentoConfirmado ? (
+                                      <Badge className="bg-green-500/20 text-green-500 border-green-500/30 gap-1 px-2 cursor-pointer transition-all" onClick={() => togglePaymentMutation.mutate({ id: ins.id, confirmed: false })}>
+                                        <CheckCircle2 size={12} /> PAGO
+                                      </Badge>
+                                    ) : (
+                                      <Badge variant="outline" className="text-amber-500 border-amber-500/30 gap-1 px-2 cursor-pointer transition-all hover:bg-amber-500/10" onClick={() => togglePaymentMutation.mutate({ id: ins.id, confirmed: true })}>
+                                        <XCircle size={12} /> PENDENTE
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </TableCell>
+                                <TableCell className="text-right">
                                   <Button 
                                     size="sm" 
                                     variant="ghost" 
@@ -345,14 +365,14 @@ export default function AdminPage() {
                                   >
                                     <Trash2 size={16} />
                                   </Button>
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          ))
-                        )}
-                      </TableBody>
-                    </Table>
-                  </div>
+                                </TableCell>
+                              </TableRow>
+                            ))
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>

@@ -19,9 +19,8 @@ import { MapPin, Shirt, CreditCard, QrCode, ArrowRight, ArrowLeft, Check, Copy, 
 import { useState, useEffect } from "react";
 import confetti from "canvas-confetti";
 import { cn } from "@/lib/utils";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import { type InsertInscription, type Inscription } from "@shared/schema";
+import { useMutation } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
 
 // Schema for Step 1
 const personalDataSchema = z.object({
@@ -50,7 +49,6 @@ import logoHappyRun from '@assets/logo_happy_run_1771010367077.png';
 import logoHumani from '@assets/Logo_Humani_Branco_1770990681867.png';
 
 export default function LandingPage() {
-  const queryClient = useQueryClient();
   const { config } = useInscriptionStore();
   const { toast } = useToast();
   
@@ -92,9 +90,18 @@ export default function LandingPage() {
   }, []);
 
   const addInscriptionMutation = useMutation({
-    mutationFn: async (data: InsertInscription) => {
-      const res = await apiRequest("POST", "/api/inscriptions", data);
-      return res.json();
+    mutationFn: async (data: PersonalData) => {
+      const { error } = await supabase.from('inscriptions').insert({
+        nome: data.nome,
+        telefone: data.telefone,
+        tamanho: data.tamanho,
+        cor_camisa: data.corCamisa,
+        trabalha_bandeiras: data.trabalhaBandeiras,
+        empresa_bandeiras: data.empresaBandeiras || null,
+        presenca_spinning: data.presencaSpinning,
+        pagamento_confirmado: false,
+      });
+      if (error) throw new Error(error.message);
     }
   });
 
@@ -136,16 +143,7 @@ export default function LandingPage() {
   const onPaymentSubmit = (paymentData: PaymentData) => {
     if (!personalData) return;
 
-    addInscriptionMutation.mutate({
-      nome: personalData.nome,
-      telefone: personalData.telefone,
-      tamanho: personalData.tamanho,
-      corCamisa: personalData.corCamisa,
-      trabalhaBandeiras: personalData.trabalhaBandeiras,
-      empresaBandeiras: personalData.empresaBandeiras,
-      presencaSpinning: personalData.presencaSpinning,
-      pagamentoConfirmado: false
-    }, {
+    addInscriptionMutation.mutate(personalData, {
       onSuccess: () => {
         setStep(3);
         if (paymentData.paymentMethod === "credit_card") {
