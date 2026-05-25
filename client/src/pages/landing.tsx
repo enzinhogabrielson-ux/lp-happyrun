@@ -15,7 +15,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { MapPin, Shirt, CreditCard, QrCode, ArrowRight, ArrowLeft, Check, Copy, Loader2, Lock, Users } from "lucide-react";
+import { MapPin, Shirt, CreditCard, QrCode, ArrowRight, ArrowLeft, Check, Copy, Loader2, Lock, Users, Info } from "lucide-react";
 import { useState, useEffect } from "react";
 import confetti from "canvas-confetti";
 import { cn } from "@/lib/utils";
@@ -233,7 +233,7 @@ export default function LandingPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-stretch"
+            className="flex flex-col gap-4 justify-center lg:justify-start items-stretch"
           >
             <div className="flex items-center gap-3 bg-card/50 px-5 py-3 rounded-xl border border-primary/20 backdrop-blur-sm">
               <div className="p-2 bg-primary/10 rounded-lg text-primary">
@@ -241,10 +241,9 @@ export default function LandingPage() {
               </div>
               <div className="text-left">
                 <div className="text-xs text-primary font-bold uppercase tracking-wider">Local & Data</div>
-                <div className="text-sm font-semibold mb-1">Bandeiras | Centro Empresarial<br/>19 de Junho - 06h30</div>
+                <div className="text-sm font-semibold mb-1">19 de Junho<br/>Bandeiras | Centro Empresarial</div>
                 <div className="text-xs text-muted-foreground leading-tight">
-                  Av. Ireno da Silva Venâncio, 199<br/>
-                  Protestantes, Votorantim
+                  Av. Ireno da Silva Venâncio, 199 - Protestantes, Votorantim
                 </div>
               </div>
             </div>
@@ -255,7 +254,21 @@ export default function LandingPage() {
               </div>
               <div className="text-left">
                 <div className="text-xs text-primary font-bold uppercase tracking-wider">Valor</div>
-                <div className="text-sm font-semibold">Inscrição R$ 97,00<br/>Happy Hour Incluso</div>
+                <div className="text-sm font-semibold">Inscrição R$97<br/><span className="text-xs font-normal text-muted-foreground">Experiência completa do evento, camiseta exclusiva oficial, vale chopp e diversas ativações preparadas para tornar essa edição ainda mais inesquecível.</span></div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 bg-card/50 px-5 py-3 rounded-xl border border-primary/20 backdrop-blur-sm">
+              <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                <Info size={24} />
+              </div>
+              <div className="text-left">
+                <div className="text-xs text-primary font-bold uppercase tracking-wider">Observações</div>
+                <div className="text-[11px] md:text-xs text-foreground/90 font-medium leading-relaxed">
+                  • Inicio das Ativações: <span className="text-primary font-bold">17h</span><br/>
+                  • Largada: Corrida 5km as <span className="text-primary font-bold">19h</span><br/>
+                  • Largada: Caminhada 3km as <span className="text-primary font-bold">19h15</span>
+                </div>
               </div>
             </div>
           </motion.div>
@@ -442,7 +455,7 @@ export default function LandingPage() {
                             </FormControl>
                             <div className="space-y-1 leading-none">
                               <FormLabel className="text-sm font-medium text-white cursor-pointer">
-                                Participará do aulão de Spinning as 06h30?
+                                Participará do aulão surpresa às 06h30?
                               </FormLabel>
                               <p className="text-xs text-primary font-bold mt-1">
                                 🔥 Somente 50 vagas
